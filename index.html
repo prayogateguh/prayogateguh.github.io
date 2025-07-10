@@ -316,12 +316,23 @@
                     </div>
                 </div>
                  <div>
-                     <label for="subscription-next-payment" class="block text-sm font-medium text-gray-600 dark:text-gray-400">Next Payment Date</label>
+                     <label for="subscription-next-payment" class="block text-sm font-medium text-gray-600 dark:text-gray-400">First Payment Date</label>
                      <input type="date" id="subscription-next-payment" class="mt-1 w-full bg-gray-100 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md p-2 focus-ring" required>
                  </div>
                 <div>
                     <label for="subscription-payment-method" class="block text-sm font-medium text-gray-600 dark:text-gray-400">Payment Method</label>
                     <input type="text" id="subscription-payment-method" placeholder="e.g., Credit Card, PayPal" class="mt-1 w-full bg-gray-100 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md p-2 focus-ring">
+                </div>
+                <div>
+                    <label for="subscription-status" class="block text-sm font-medium text-gray-600 dark:text-gray-400">Status</label>
+                    <select id="subscription-status" class="mt-1 w-full bg-gray-100 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md p-2 focus-ring">
+                        <option value="active">Active</option>
+                        <option value="cancelled">Cancelled</option>
+                    </select>
+                </div>
+                <div id="cancellation-date-container" class="hidden">
+                    <label for="subscription-cancellation-date" class="block text-sm font-medium text-gray-600 dark:text-gray-400">Cancellation Date</label>
+                    <input type="date" id="subscription-cancellation-date" class="mt-1 w-full bg-gray-100 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md p-2 focus-ring">
                 </div>
                 <div class="pt-4 flex justify-end gap-3">
                     <button type="button" id="subscription-form-cancel-btn" class="px-4 py-2 bg-gray-200 dark:bg-gray-600 text-gray-800 dark:text-white rounded-md hover:bg-gray-300 dark:hover:bg-gray-500 focus-ring">Cancel</button>
@@ -1189,8 +1200,7 @@
                     }
                     if (pastTaskToggle) { pastTaskToggle.nextElementSibling.classList.toggle('hidden'); pastTaskToggle.querySelector('svg').classList.toggle('rotate-180'); return; }
                     if(moveSelectedBtn || moveAllBtn) {
-                        const quadrantId = moveSelectedBtn ? moveSelectedBtn.closest('.quadrant-container').id : moveAllBtn.closest('.quadrant-container').id;
-                        const checkboxes = moveSelectedBtn ? moveSelectedBtn.closest('.past-tasks-list').querySelectorAll('.past-task-checkbox:checked') : moveAllBtn.closest('.past-tasks-list').querySelectorAll('.past-task-checkbox');
+                        const quadrantId = moveSelectedBtn ? moveSelectedBtn.closest('.quadrant-container').id : moveAllBtn.closest('.past-tasks-list').querySelectorAll('.past-task-checkbox');
                         checkboxes.forEach(checkbox => movePastTaskToToday(checkbox.dataset.taskId, checkbox.dataset.taskDate, quadrantId));
                         saveData();
                         renderTasks();
@@ -1384,6 +1394,8 @@
                 const calendarPrevBtn = document.getElementById('calendar-prev-month-btn');
                 const calendarNextBtn = document.getElementById('calendar-next-month-btn');
                 const calendarTodayBtn = document.getElementById('calendar-today-btn');
+                const subscriptionStatusEl = document.getElementById('subscription-status');
+                const cancellationDateContainer = document.getElementById('cancellation-date-container');
 
                 function getColorsForString(str) {
                     let hash = 0;
@@ -1443,7 +1455,7 @@
                     subscriptionCalendarView.classList.toggle('hidden', isList);
 
                     if (isList) {
-                        calculateAndRenderSummary();
+                        renderSubscriptionList(searchInput.value);
                     } else {
                         renderSubscriptionCalendar();
                     }
@@ -1451,15 +1463,21 @@
                 }
 
                 function calculateAndRenderSummary() {
-                    if (!subscriptions || subscriptions.length === 0) {
+                    if (!subscriptions) {
+                        subscriptionSummaryContainer.innerHTML = '';
+                        return;
+                    }
+                    const activeSubscriptions = subscriptions.filter(s => s.status !== 'cancelled');
+
+                    if (activeSubscriptions.length === 0) {
                         subscriptionSummaryContainer.innerHTML = '';
                         return;
                     }
 
                     const totalsByCurrency = {};
-                    const totalSubscriptions = subscriptions.length;
+                    const totalSubscriptions = activeSubscriptions.length;
 
-                    subscriptions.forEach(sub => {
+                    activeSubscriptions.forEach(sub => {
                         let monthlyCost = 0;
                         const price = sub.price;
                         const count = sub.frequencyCount;
@@ -1488,7 +1506,7 @@
                     const summaryHtml = `
                         <div class="bg-gradient-to-r from-indigo-500 to-purple-600 text-white p-6 rounded-2xl shadow-lg flex items-center justify-between">
                             <div>
-                                <p class="text-sm uppercase tracking-wider opacity-80">Total Subscriptions</p>
+                                <p class="text-sm uppercase tracking-wider opacity-80">Active Subscriptions</p>
                                 <p class="text-3xl font-bold">${totalSubscriptions}</p>
                             </div>
                             <div class="text-right">
@@ -1503,57 +1521,69 @@
                     
                     subscriptionSummaryContainer.innerHTML = summaryHtml;
                 }
+                
+                function getPaymentsForDay(dayDate, allSubscriptions) {
+                    const payments = [];
+                    const checkDate = new Date(dayDate.getFullYear(), dayDate.getMonth(), dayDate.getDate());
+                    checkDate.setHours(0, 0, 0, 0);
+
+                    for (const sub of allSubscriptions) {
+                        if (!sub.nextPayment) continue;
+
+                        const startDate = new Date(sub.nextPayment + 'T00:00:00');
+                        if (startDate > checkDate) continue;
+
+                        if (sub.status === 'cancelled' && sub.cancellationDate) {
+                            const cancellationDate = new Date(sub.cancellationDate + 'T00:00:00');
+                            if (checkDate >= cancellationDate) continue;
+                        }
+                        
+                        if (sub.frequencyUnit === 'months') {
+                            if (startDate.getUTCDate() !== checkDate.getUTCDate()) continue;
+                            const monthDiff = (checkDate.getFullYear() - startDate.getFullYear()) * 12 + (checkDate.getMonth() - startDate.getMonth());
+                            if (monthDiff >= 0 && monthDiff % sub.frequencyCount === 0) {
+                                payments.push(sub);
+                            }
+                        } else if (sub.frequencyUnit === 'years') {
+                            if (startDate.getUTCDate() !== checkDate.getUTCDate() || startDate.getUTCMonth() !== checkDate.getUTCMonth()) continue;
+                            const yearDiff = checkDate.getFullYear() - startDate.getFullYear();
+                            if (yearDiff >= 0 && yearDiff % sub.frequencyCount === 0) {
+                                payments.push(sub);
+                            }
+                        } else {
+                            let intervalDays = 0;
+                            if (sub.frequencyUnit === 'days') {
+                                intervalDays = sub.frequencyCount;
+                            } else if (sub.frequencyUnit === 'weeks') {
+                                intervalDays = sub.frequencyCount * 7;
+                            }
+
+                            if (intervalDays > 0) {
+                                const diffTime = checkDate - startDate;
+                                const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24));
+                                if (diffDays >= 0 && diffDays % intervalDays === 0) {
+                                    payments.push(sub);
+                                }
+                            }
+                        }
+                    }
+                    return payments;
+                }
 
                 function getPaymentsForMonth(year, month) {
                     const totals = {};
-                    const monthStartDate = new Date(Date.UTC(year, month, 1));
-                    const monthEndDate = new Date(Date.UTC(year, month + 1, 0, 23, 59, 59));
+                    const daysInMonth = new Date(year, month + 1, 0).getDate();
 
-                    subscriptions.forEach(sub => {
-                        if (!sub.nextPayment) return;
-
-                        const basePaymentDate = new Date(sub.nextPayment + 'T00:00:00Z');
-                        const freqCount = sub.frequencyCount;
-                        const freqUnit = sub.frequencyUnit;
-
-                        const checkAndAddPayments = (incrementFn) => {
-                            let currentDate = new Date(basePaymentDate);
-                            
-                            while (currentDate > monthEndDate) {
-                                incrementFn(currentDate, -freqCount);
+                    for (let day = 1; day <= daysInMonth; day++) {
+                        const date = new Date(year, month, day);
+                        const paymentsOnDay = getPaymentsForDay(date, subscriptions);
+                        paymentsOnDay.forEach(sub => {
+                            if (!totals[sub.currency]) {
+                                totals[sub.currency] = 0;
                             }
-                            
-                            while(currentDate < monthStartDate) {
-                                incrementFn(currentDate, freqCount);
-                            }
-
-                            while (currentDate <= monthEndDate) {
-                                 if (currentDate >= monthStartDate) {
-                                    if (!totals[sub.currency]) {
-                                        totals[sub.currency] = 0;
-                                    }
-                                    totals[sub.currency] += sub.price;
-                                }
-                                incrementFn(currentDate, freqCount);
-                            }
-                        };
-
-                        switch (freqUnit) {
-                            case 'days':
-                                checkAndAddPayments((d, c) => d.setUTCDate(d.getUTCDate() + c));
-                                break;
-                            case 'weeks':
-                                checkAndAddPayments((d, c) => d.setUTCDate(d.getUTCDate() + (c * 7)));
-                                break;
-                            case 'months':
-                                checkAndAddPayments((d, c) => d.setUTCMonth(d.getUTCMonth() + c));
-                                break;
-                            case 'years':
-                                checkAndAddPayments((d, c) => d.setUTCFullYear(d.getUTCFullYear() + c));
-                                break;
-                        }
-                    });
-
+                            totals[sub.currency] += sub.price;
+                        });
+                    }
                     return totals;
                 }
 
@@ -1577,11 +1607,12 @@
 
                     filteredSubs.forEach(sub => {
                         const item = document.createElement('div');
-                        item.className = 'subscription-item bg-white dark:bg-gray-800/80 p-4 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700/80 flex items-center justify-between group';
+                        const isCancelled = sub.status === 'cancelled';
+                        item.className = `subscription-item bg-white dark:bg-gray-800/80 p-4 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700/80 flex items-center justify-between group ${isCancelled ? 'opacity-60' : ''}`;
                         
                         const [year, month, day] = sub.nextPayment.split('-').map(Number);
-                        const nextPaymentDate = new Date(year, month - 1, day);
-                        const formattedDate = nextPaymentDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+                        const nextPaymentDate = new Date(Date.UTC(year, month - 1, day));
+                        const formattedDate = nextPaymentDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' });
 
                         const currencyFormatter = new Intl.NumberFormat('en-US', { style: 'currency', currency: sub.currency });
                         const color = getColorsForString(sub.name);
@@ -1592,14 +1623,14 @@
                                     ${sub.name.charAt(0).toUpperCase()}
                                 </div>
                                 <div class="flex-1 min-w-0">
-                                    <p class="font-semibold text-gray-900 dark:text-white truncate">${sub.name}</p>
-                                    <p class="text-sm text-gray-500 dark:text-gray-400">${sub.frequencyCount} ${sub.frequencyUnit}</p>
+                                    <p class="font-semibold text-gray-900 dark:text-white truncate flex items-center">${sub.name} ${isCancelled ? `<span class="ml-2 text-xs font-medium bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-200 px-2 py-0.5 rounded-full">Cancelled</span>` : ''}</p>
+                                    <p class="text-sm text-gray-500 dark:text-gray-400">${sub.frequencyCount} ${sub.frequencyUnit.slice(0,-1)}${sub.frequencyCount > 1 ? 's' : ''}</p>
                                 </div>
                             </div>
                             <div class="flex items-center gap-6 text-sm">
                                 <div class="text-right">
-                                    <p class="font-medium text-gray-600 dark:text-gray-300">Next: ${formattedDate}</p>
-                                    <p class="text-xs text-gray-500">${sub.paymentMethod}</p>
+                                    <p class="font-medium text-gray-600 dark:text-gray-300">First: ${formattedDate}</p>
+                                    <p class="text-xs text-gray-500">${sub.paymentMethod || ''}</p>
                                 </div>
                                 <p class="font-semibold text-lg text-gray-900 dark:text-white w-28 text-right">${currencyFormatter.format(sub.price)}</p>
                                 <div class="subscription-actions opacity-0 group-hover:opacity-100 transition-opacity flex items-center">
@@ -1617,7 +1648,7 @@
                 }
 
                 function renderSubscriptionCalendar() {
-                    calendarMonthYearEl.textContent = trackerState.calendarDate.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+                    calendarMonthYearEl.textContent = trackerState.calendarDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
                     
                     const year = trackerState.calendarDate.getFullYear();
                     const month = trackerState.calendarDate.getMonth();
@@ -1630,7 +1661,7 @@
                             return formatter.format(monthlyTotals[currency]);
                         }).join(' + ');
                     } else {
-                        totalContainer.innerHTML = '';
+                        totalContainer.innerHTML = 'No payments this month';
                     }
 
                     const firstDayOfMonth = new Date(year, month, 1);
@@ -1657,8 +1688,7 @@
 
                     for (let day = 1; day <= daysInMonth; day++) {
                         const date = new Date(year, month, day);
-                        const dateString = date.toISOString().split('T')[0];
-                        const isToday = dateString === todayDateString;
+                        const isToday = date.toDateString() === today.toDateString();
 
                         const dayClasses = `calendar-day p-2 border-r border-b border-gray-200 dark:border-gray-700/80 relative ${isToday ? 'bg-indigo-50 dark:bg-indigo-900/20' : ''}`;
                         html += `<div class="${dayClasses}">`;
@@ -1667,16 +1697,13 @@
                         }
                         html += `<span class="text-sm font-medium ${isToday ? 'text-indigo-600 dark:text-indigo-400' : 'text-gray-700 dark:text-gray-300'}">${day}</span>`;
                         
-                        const subsOnThisDay = subscriptions.filter(s => {
-                             const [s_year, s_month, s_day] = s.nextPayment.split('-').map(Number);
-                             const subDate = new Date(s_year, s_month - 1, s_day);
-                             return subDate.toISOString().split('T')[0] === dateString;
-                        });
+                        const subsOnThisDay = getPaymentsForDay(date, subscriptions);
+                        
                         if (subsOnThisDay.length > 0) {
-                            html += `<div class="mt-1 space-y-1">`;
+                            html += `<div class="mt-1 space-y-1 overflow-y-auto max-h-20 pr-1">`;
                             subsOnThisDay.forEach(sub => {
                                 const color = getColorsForString(sub.name);
-                                html += `<div data-id="${sub.id}" class="edit-subscription-btn cursor-pointer text-xs p-1.5 rounded-md ${color.bg} ${color.darkBg} ${color.text} ${color.darkText} truncate">${sub.name}</div>`;
+                                html += `<div data-id="${sub.id}" class="edit-subscription-btn cursor-pointer text-xs p-1.5 rounded-md ${color.bg} ${color.darkBg} ${color.text} ${color.darkText} truncate" title="${sub.name}">${sub.name}</div>`;
                             });
                             html += `</div>`;
                         }
@@ -1690,6 +1717,7 @@
                 window.openSubscriptionModal = function(subId = null) {
                     subscriptionForm.reset();
                     document.getElementById('subscription-id').value = '';
+                    cancellationDateContainer.classList.add('hidden');
                     if (subId) {
                         const sub = subscriptions.find(s => s.id === subId);
                         if (sub) {
@@ -1701,10 +1729,16 @@
                             document.getElementById('subscription-frequency-count').value = sub.frequencyCount;
                             document.getElementById('subscription-frequency-unit').value = sub.frequencyUnit;
                             document.getElementById('subscription-next-payment').value = sub.nextPayment;
-                            document.getElementById('subscription-payment-method').value = sub.paymentMethod;
+                            document.getElementById('subscription-payment-method').value = sub.paymentMethod || '';
+                            subscriptionStatusEl.value = sub.status || 'active';
+                            if (sub.status === 'cancelled') {
+                                cancellationDateContainer.classList.remove('hidden');
+                                document.getElementById('subscription-cancellation-date').value = sub.cancellationDate || '';
+                            }
                         }
                     } else {
                         document.getElementById('subscription-modal-title').textContent = 'Add Subscription';
+                        subscriptionStatusEl.value = 'active';
                     }
                     subscriptionModal.classList.remove('hidden');
                 }
@@ -1714,9 +1748,20 @@
                 }
                 
                 function refreshAllViews() {
-                    renderSubscriptionList(searchInput.value);
-                    renderSubscriptionCalendar();
+                    if (trackerState.view === 'list') {
+                        renderSubscriptionList(searchInput.value);
+                    } else {
+                        renderSubscriptionCalendar();
+                    }
                 }
+
+                subscriptionStatusEl.addEventListener('change', (e) => {
+                    if (e.target.value === 'cancelled') {
+                        cancellationDateContainer.classList.remove('hidden');
+                    } else {
+                        cancellationDateContainer.classList.add('hidden');
+                    }
+                });
 
                 addSubscriptionBtn.addEventListener('click', () => openSubscriptionModal());
                 subscriptionModal.querySelector('#subscription-modal-close-btn').addEventListener('click', closeSubscriptionModal);
@@ -1737,6 +1782,8 @@
                         frequencyUnit: document.getElementById('subscription-frequency-unit').value,
                         nextPayment: document.getElementById('subscription-next-payment').value,
                         paymentMethod: document.getElementById('subscription-payment-method').value,
+                        status: subscriptionStatusEl.value,
+                        cancellationDate: subscriptionStatusEl.value === 'cancelled' ? document.getElementById('subscription-cancellation-date').value : null
                     };
 
                     if (id) {
@@ -1790,7 +1837,6 @@
                 
                 function initTracker() {
                     loadTrackerState();
-                    renderSubscriptionList();
                     switchTrackerView(trackerState.view);
                 }
                 initTracker();
