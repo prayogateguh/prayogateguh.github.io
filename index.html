@@ -1397,6 +1397,10 @@
                 const subscriptionStatusEl = document.getElementById('subscription-status');
                 const cancellationDateContainer = document.getElementById('cancellation-date-container');
 
+                function formatCurrency(amount, currency) {
+                    return new Intl.NumberFormat('en-US', { style: 'currency', currency: currency }).format(amount);
+                }
+
                 function getColorsForString(str) {
                     let hash = 0;
                     for (let i = 0; i < str.length; i++) {
@@ -1512,8 +1516,7 @@
                             <div class="text-right">
                                  <p class="text-sm uppercase tracking-wider opacity-80">Estimated Monthly Total</p>
                                  ${Object.keys(totalsByCurrency).length === 0 ? '<p class="text-3xl font-bold">-</p>' : Object.keys(totalsByCurrency).map(currency => {
-                                     const formatter = new Intl.NumberFormat('en-US', { style: 'currency', currency: currency });
-                                     return `<p class="text-3xl font-bold">${formatter.format(totalsByCurrency[currency])}</p>`;
+                                     return `<p class="text-3xl font-bold">${formatCurrency(totalsByCurrency[currency], currency)}</p>`;
                                  }).join('')}
                             </div>
                         </div>
@@ -1614,7 +1617,6 @@
                         const nextPaymentDate = new Date(Date.UTC(year, month - 1, day));
                         const formattedDate = nextPaymentDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' });
 
-                        const currencyFormatter = new Intl.NumberFormat('en-US', { style: 'currency', currency: sub.currency });
                         const color = getColorsForString(sub.name);
 
                         item.innerHTML = `
@@ -1632,7 +1634,7 @@
                                     <p class="font-medium text-gray-600 dark:text-gray-300">First: ${formattedDate}</p>
                                     <p class="text-xs text-gray-500">${sub.paymentMethod || ''}</p>
                                 </div>
-                                <p class="font-semibold text-lg text-gray-900 dark:text-white w-28 text-right">${currencyFormatter.format(sub.price)}</p>
+                                <p class="font-semibold text-lg text-gray-900 dark:text-white w-28 text-right">${formatCurrency(sub.price, sub.currency)}</p>
                                 <div class="subscription-actions opacity-0 group-hover:opacity-100 transition-opacity flex items-center">
                                     <button data-id="${sub.id}" class="edit-subscription-btn p-2 rounded-md hover:bg-gray-200 dark:hover:bg-gray-700">
                                         <svg class="w-5 h-5 text-gray-500 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
@@ -1657,8 +1659,7 @@
                     const totalContainer = document.getElementById('calendar-monthly-total');
                     if (Object.keys(monthlyTotals).length > 0) {
                         totalContainer.innerHTML = 'Total: ' + Object.keys(monthlyTotals).map(currency => {
-                            const formatter = new Intl.NumberFormat('en-US', { style: 'currency', currency: currency });
-                            return formatter.format(monthlyTotals[currency]);
+                            return formatCurrency(monthlyTotals[currency], currency);
                         }).join(' + ');
                     } else {
                         totalContainer.innerHTML = 'No payments this month';
@@ -1703,7 +1704,7 @@
                             html += `<div class="mt-1 space-y-1 overflow-y-auto max-h-20 pr-1">`;
                             subsOnThisDay.forEach(sub => {
                                 const color = getColorsForString(sub.name);
-                                html += `<div data-id="${sub.id}" class="edit-subscription-btn cursor-pointer text-xs p-1.5 rounded-md ${color.bg} ${color.darkBg} ${color.text} ${color.darkText} truncate" title="${sub.name}">${sub.name}</div>`;
+                                html += `<div data-id="${sub.id}" class="edit-subscription-btn cursor-pointer text-xs p-1.5 rounded-md ${color.bg} ${color.darkBg} ${color.text} ${color.darkText} truncate" title="${sub.name}">${sub.name} - ${formatCurrency(monthlyTotals[sub.currency], sub.currency)}</div>`;
                             });
                             html += `</div>`;
                         }
