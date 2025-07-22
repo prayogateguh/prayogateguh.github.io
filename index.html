@@ -70,7 +70,7 @@
         <aside class="w-24 flex-shrink-0 bg-white dark:bg-gray-800 p-3 border-r border-gray-200 dark:border-gray-700 flex flex-col items-center justify-between">
             <div class="flex flex-col items-center gap-y-6">
                  <div class="w-14 h-14 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-2xl flex items-center justify-center text-white font-bold text-3xl shadow-lg">
-                    D
+                   D
                  </div>
                  <nav class="flex flex-col gap-y-4 mt-4">
                      <button id="nav-planner" title="Eisenhower Planner" class="app-nav-btn p-4 rounded-2xl focus-ring transition-all duration-200">
@@ -232,13 +232,19 @@
                 <input type="text" id="task-details-title" class="text-lg font-semibold bg-transparent text-gray-900 dark:text-white w-full focus:outline-none focus:bg-gray-100 dark:focus:bg-gray-700 rounded-md -ml-2 px-2 py-1">
                 <button id="task-details-close-btn" class="p-1 rounded-full text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700">&times;</button>
             </div>
-            <div class="mb-4">
-                <label for="task-details-status" class="text-sm text-gray-500 dark:text-gray-400 mb-1">Status</label>
-                <select id="task-details-status" class="w-full bg-gray-100 dark:bg-gray-700/50 border border-gray-300 dark:border-gray-600 text-gray-800 dark:text-gray-200 rounded-md p-2 focus-ring">
-                    <option value="draft">Draft</option>
-                    <option value="in progress">In Progress</option>
-                    <option value="completed">Completed</option>
-                </select>
+            <div class="grid grid-cols-2 gap-4 mb-4">
+                 <div>
+                    <label for="task-details-status" class="text-sm font-medium text-gray-500 dark:text-gray-400 mb-1 block">Status</label>
+                    <select id="task-details-status" class="w-full bg-gray-100 dark:bg-gray-700/50 border border-gray-300 dark:border-gray-600 text-gray-800 dark:text-gray-200 rounded-md p-2 focus-ring">
+                        <option value="draft">Draft</option>
+                        <option value="in progress">In Progress</option>
+                        <option value="completed">Completed</option>
+                    </select>
+                 </div>
+                 <div>
+                    <label for="task-details-deadline" class="text-sm font-medium text-gray-500 dark:text-gray-400 mb-1 block">Deadline</label>
+                    <input type="datetime-local" id="task-details-deadline" class="w-full bg-gray-100 dark:bg-gray-700/50 border border-gray-300 dark:border-gray-600 text-gray-800 dark:text-gray-200 rounded-md p-2 focus-ring">
+                </div>
             </div>
             <p class="text-sm text-gray-500 dark:text-gray-400 mb-2">Description</p>
             <textarea id="task-details-description" class="w-full bg-gray-100 dark:bg-gray-700/50 border border-gray-300 dark:border-gray-600 text-gray-800 dark:text-gray-200 rounded-md p-2 focus-ring mb-4" rows="3" placeholder="Add a description..."></textarea>
@@ -374,7 +380,7 @@
                 navTrackerBtn.classList.toggle('text-white', appName === 'tracker');
                 navTrackerBtn.classList.toggle('shadow-lg', appName === 'tracker');
                 navTrackerBtn.classList.toggle('text-gray-500', appName !== 'tracker');
-                navTrackerBtn.classList.toggle('dark:text-gray-400', appName !== 'planner');
+                navTrackerBtn.classList.toggle('dark:text-gray-400', appName !== 'tracker');
                 navTrackerBtn.classList.toggle('hover:bg-gray-100', appName !== 'tracker');
                 navTrackerBtn.classList.toggle('dark:hover:bg-gray-700/50', appName !== 'tracker');
             }
@@ -472,14 +478,14 @@
                 }
 
                  function deleteFileFromDB(id) {
-                    return new Promise((resolve, reject) => {
-                        const transaction = db.transaction(['files'], 'readwrite');
-                        const store = transaction.objectStore('files');
-                        const request = store.delete(id);
-                        request.onsuccess = () => resolve();
-                        request.onerror = event => reject('Error deleting file: ' + event.target.error);
-                    });
-                }
+                     return new Promise((resolve, reject) => {
+                         const transaction = db.transaction(['files'], 'readwrite');
+                         const store = transaction.objectStore('files');
+                         const request = store.delete(id);
+                         request.onsuccess = () => resolve();
+                         request.onerror = event => reject('Error deleting file: ' + event.target.error);
+                     });
+                 }
 
                 let appData = {};
                 let uiState = { 
@@ -871,10 +877,27 @@
                     div.dataset.index = index;
                     div.draggable = true;
 
-                    const statusColors = { draft: 'bg-gray-400', 'in progress': 'bg-blue-500', completed: 'bg-green-500' };
-                    const hasDetails = task.description || (task.subTasks && task.subTasks.length > 0) || (task.attachments && task.attachments.length > 0);
+                    const hasDetails = task.description || (task.subTasks && task.subTasks.length > 0) || (task.attachments && task.attachments.length > 0) || task.deadline;
                     const subtaskProgress = (task.subTasks && task.subTasks.length > 0) ? `${task.subTasks.filter(st => st.done).length}/${task.subTasks.length}` : '';
                     const attachmentCount = (task.attachments && task.attachments.length > 0) ? task.attachments.length : 0;
+                    
+                    let deadlineHtml = '';
+                    if (task.deadline) {
+                        const deadlineDate = new Date(task.deadline);
+                        const isOverdue = deadlineDate < new Date() && !task.done;
+                        const formattedDeadline = deadlineDate.toLocaleDateString(undefined, {
+                            month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit', hour12: true
+                        });
+                        const deadlineColor = isOverdue ? 'text-red-600 dark:text-red-400' : 'text-gray-500 dark:text-gray-400';
+                        deadlineHtml = `
+                            <span class="flex items-center gap-1 ${deadlineColor}">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" viewBox="0 0 20 20" fill="currentColor">
+                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd" />
+                                </svg>
+                                <span>${formattedDeadline}</span>
+                            </span>`;
+                    }
+
 
                     div.innerHTML = `
                         <div class="flex items-start gap-3 flex-grow min-w-0">
@@ -884,9 +907,10 @@
                                     <p class="task-text text-sm flex-grow ${task.done ? 'line-through text-gray-400 dark:text-gray-500' : 'text-gray-800 dark:text-gray-200'}">${task.text}</p>
                                 </div>
                                 ${hasDetails ? `
-                                <div class="flex items-center gap-3 text-xs text-gray-500 dark:text-gray-400 mt-1">
-                                    ${subtaskProgress ? `<span class="flex items-center gap-1"><svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M3 5a2 2 0 012-2h10a2 2 0 012 2v10a2 2 0 01-2 2H5a2 2 0 01-2-2V5zm2-1a1 1 0 00-1 1v2h12V5a1 1 0 00-1-1H5zM4 9v6a1 1 0 001 1h10a1 1 0 001-1V9H4z" clip-rule="evenodd" /></svg><span>${subtaskProgress}</span></span>` : ''}
-                                     ${attachmentCount > 0 ? `<span class="flex items-center gap-1"><svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M8 4a3 3 0 00-3 3v4a3 3 0 106 0V7a1 1 0 112 0v4a5 5 0 11-10 0V7a3 3 0 013-3z" clip-rule="evenodd" /></svg><span>${attachmentCount}</span></span>` : ''}
+                                <div class="flex items-center flex-wrap gap-x-3 gap-y-1 text-xs mt-1">
+                                    ${subtaskProgress ? `<span class="flex items-center gap-1 text-gray-500 dark:text-gray-400"><svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M3 5a2 2 0 012-2h10a2 2 0 012 2v10a2 2 0 01-2 2H5a2 2 0 01-2-2V5zm2-1a1 1 0 00-1 1v2h12V5a1 1 0 00-1-1H5zM4 9v6a1 1 0 001 1h10a1 1 0 001-1V9H4z" clip-rule="evenodd" /></svg><span>${subtaskProgress}</span></span>` : ''}
+                                    ${attachmentCount > 0 ? `<span class="flex items-center gap-1 text-gray-500 dark:text-gray-400"><svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M8 4a3 3 0 00-3 3v4a3 3 0 106 0V7a1 1 0 112 0v4a5 5 0 11-10 0V7a3 3 0 013-3z" clip-rule="evenodd" /></svg><span>${attachmentCount}</span></span>` : ''}
+                                    ${deadlineHtml}
                                 </div>` : ''}
                             </div>
                         </div>
@@ -929,7 +953,8 @@
                     
                     taskDetailsModal.querySelector('#task-details-title').value = task.text;
                     taskDetailsModal.querySelector('#task-details-status').value = task.status;
-                    taskDetailsModal.querySelector('#task-details-description').value = task.description;
+                    taskDetailsModal.querySelector('#task-details-deadline').value = task.deadline || '';
+                    taskDetailsModal.querySelector('#task-details-description').value = task.description || '';
                     renderSubTasks(task.subTasks);
                     renderAttachments(task.attachments);
 
@@ -1072,12 +1097,18 @@
 
                 taskDetailsModal.addEventListener('change', e => {
                     if(!editingTaskLocation) return;
+                    const { quadrantId, index } = editingTaskLocation;
+                    const activeWS = appData.workspaces.find(ws => ws.id === appData.activeWorkspaceId);
+                    const task = activeWS.tasks[uiState.currentDate.toISOString().split('T')[0]][quadrantId][index];
+
                     if(e.target.matches('#task-details-status')) {
-                        const { quadrantId, index } = editingTaskLocation;
-                        const activeWS = appData.workspaces.find(ws => ws.id === appData.activeWorkspaceId);
-                        const task = activeWS.tasks[uiState.currentDate.toISOString().split('T')[0]][quadrantId][index];
                         task.status = e.target.value;
                         task.done = task.status === 'completed';
+                        saveData();
+                        renderTasks();
+                    }
+                    if(e.target.matches('#task-details-deadline')) {
+                        task.deadline = e.target.value || null;
                         saveData();
                         renderTasks();
                     }
@@ -1156,7 +1187,7 @@
                     if (taskText) {
                         const activeWorkspace = appData.workspaces.find(ws => ws.id === appData.activeWorkspaceId);
                         if(!activeWorkspace.tasks[dateStr]) activeWorkspace.tasks[dateStr] = JSON.parse(JSON.stringify(defaultTasks));
-                        const task = { id: `task-${Date.now()}-${Math.random()}`, text: taskText, done: false, status: 'draft', description: '', subTasks: [], attachments: [], createdAt: dateStr };
+                        const task = { id: `task-${Date.now()}-${Math.random()}`, text: taskText, done: false, status: 'draft', description: '', subTasks: [], attachments: [], createdAt: dateStr, deadline: null };
                         activeWorkspace.tasks[dateStr][quadrantId].push(task); 
                         saveData();
                         renderTasks();
@@ -1200,7 +1231,6 @@
                     }
                     if (pastTaskToggle) { pastTaskToggle.nextElementSibling.classList.toggle('hidden'); pastTaskToggle.querySelector('svg').classList.toggle('rotate-180'); return; }
                     
-                    // --- FIX START ---
                     if (moveSelectedBtn || moveAllBtn) {
                         const quadrantContainer = e.target.closest('.quadrant-container');
                         if (!quadrantContainer) return;
@@ -1218,10 +1248,9 @@
                         });
 
                         saveData();
-                        renderAllPlanner(); // Re-render everything to reflect changes
-                        return; // Exit click handler
+                        renderAllPlanner(); 
+                        return; 
                     }
-                    // --- FIX END ---
 
                     if (!sortBtn) document.querySelectorAll('.sort-menu').forEach(menu => menu.classList.add('hidden'));
                     if (addTaskBtn) {
@@ -1362,12 +1391,11 @@
                 nextMonthBtn.addEventListener('click', () => { calendarDate.setMonth(calendarDate.getMonth() + 1); renderCalendar(); });
                 document.addEventListener('click', (e) => { if (calendarPopover && !calendarPopover.contains(e.target) && e.target !== calendarBtn && !calendarBtn.contains(e.target)) calendarPopover.classList.add('hidden'); });
 
-                // --- FIX START ---
                 function movePastTaskToToday(taskId, taskDateStr, targetQuadrantId) {
                     const activeWS = appData.workspaces.find(ws => ws.id === appData.activeWorkspaceId);
                     let taskToMove = null, sourceQuadrantId = null, taskIndex = -1;
 
-                    if (!activeWS.tasks[taskDateStr]) return; // Guard against missing date data
+                    if (!activeWS.tasks[taskDateStr]) return;
 
                     for (const quadrantId in activeWS.tasks[taskDateStr]) {
                         const index = activeWS.tasks[taskDateStr][quadrantId].findIndex(t => t.id === taskId);
@@ -1380,25 +1408,19 @@
                     }
 
                     if (taskToMove) {
-                        // Remove from the old location
                         activeWS.tasks[taskDateStr][sourceQuadrantId].splice(taskIndex, 1);
                         
-                        // Get the currently viewed date string (not necessarily today)
                         const targetDateStr = uiState.currentDate.toISOString().split('T')[0];
                         
-                        // Ensure the task list for the target date exists
                         if (!activeWS.tasks[targetDateStr]) {
                             activeWS.tasks[targetDateStr] = JSON.parse(JSON.stringify(defaultTasks));
                         }
                         
-                        // Update the task's creation date to the target date
                         taskToMove.createdAt = targetDateStr;
                         
-                        // Add to the new location
                         activeWS.tasks[targetDateStr][targetQuadrantId].push(taskToMove);
                     }
                 }
-                // --- FIX END ---
 
                 async function initPlanner() {
                     await initDB();
@@ -1642,7 +1664,7 @@
                             </svg>
                             <h3 class="mt-2 text-lg font-medium text-gray-900 dark:text-white">No subscriptions yet</h3>
                             <p class="mt-1 text-sm text-gray-500">Get started by adding a new subscription.</p>
-                        </div>`;
+                          </div>`;
                         return;
                     }
 
