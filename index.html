@@ -7,7 +7,6 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="/src/style.css">
     <script>
         // Explicitly tell Tailwind to use the 'class' strategy for dark mode.
         if (localStorage.theme === 'light' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: light)').matches)) {
@@ -16,6 +15,8 @@
             document.documentElement.classList.add('dark')
         }
     </script>
+  <script type="module" crossorigin src="/assets/index-hGxW7wrV.js"></script>
+  <link rel="stylesheet" crossorigin href="/assets/index-CUxa-52h.css">
 </head>
 <body class="bg-gray-50 dark:bg-gray-900 text-gray-800 dark:text-gray-300 antialiased">
 
@@ -306,6 +307,5 @@
         </div>
     </div>
 
-    <script type="module" src="/src/main.js"></script>
 </body>
 </html>
