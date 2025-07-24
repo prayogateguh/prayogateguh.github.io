@@ -1337,35 +1337,51 @@ window.subscriptionTrackerAPI = (function subscriptionTracker() {
 
     function getPaymentsForMonth(sub, year, month) {
         const payments = [];
-        let paymentDate = new Date(sub.next_payment_date);
-        const endDate = new Date(year, month + 1, 0);
+        const firstPaymentDate = new Date(sub.first_payment_date);
+        const calendarMonthStartDate = new Date(year, month, 1);
+        const calendarMonthEndDate = new Date(year, month + 1, 0);
 
-        // Go back to find the first payment date that could affect the current month
-        while (paymentDate > new Date(year, month, 1)) {
-             let tempDate = new Date(paymentDate);
-             switch (sub.frequency_unit) {
-                case 'days': tempDate.setDate(tempDate.getDate() - sub.frequency_count); break;
-                case 'weeks': tempDate.setDate(tempDate.getDate() - sub.frequency_count * 7); break;
-                case 'months': tempDate.setMonth(tempDate.getMonth() - sub.frequency_count); break;
-                case 'years': tempDate.setFullYear(tempDate.getFullYear() - sub.frequency_count); break;
-             }
-             if (tempDate < paymentDate) {
-                 paymentDate = tempDate;
-             } else {
-                 break; // Avoid infinite loop if logic is flawed
-             }
+        // Don't show payments for months before the first payment date.
+        if (calendarMonthEndDate < firstPaymentDate) {
+            return payments;
         }
 
-        // Iterate forward through the month
-        while (paymentDate <= endDate) {
-            if (paymentDate.getFullYear() === year && paymentDate.getMonth() === month) {
+        let paymentDate = new Date(sub.first_payment_date);
+
+        // If first payment is after the current month, we need to find a relevant seed date
+        // by going backwards from a known future payment date.
+        if (paymentDate > calendarMonthEndDate) {
+            paymentDate = new Date(sub.next_payment_date);
+            while (paymentDate > calendarMonthStartDate) {
+                let tempDate = new Date(paymentDate);
+                switch (sub.frequency_unit) {
+                    case 'days': tempDate.setDate(tempDate.getDate() - sub.frequency_count); break;
+                    case 'weeks': tempDate.setDate(tempDate.getDate() - sub.frequency_count * 7); break;
+                    case 'months': tempDate.setMonth(tempDate.getMonth() - sub.frequency_count); break;
+                    case 'years': tempDate.setFullYear(tempDate.getFullYear() - sub.frequency_count); break;
+                }
+                if (tempDate < paymentDate) {
+                    paymentDate = tempDate;
+                } else {
+                    break; // Avoid infinite loop
+                }
+            }
+        }
+        
+        // Iterate forward from the seed date
+        while (paymentDate <= calendarMonthEndDate) {
+            if (paymentDate >= calendarMonthStartDate && paymentDate >= firstPaymentDate) {
                 payments.push({ ...sub, payment_date_in_month: new Date(paymentDate) });
             }
+            
+            // Move to the next payment date
             switch (sub.frequency_unit) {
                 case 'days': paymentDate.setDate(paymentDate.getDate() + sub.frequency_count); break;
                 case 'weeks': paymentDate.setDate(paymentDate.getDate() + sub.frequency_count * 7); break;
                 case 'months': paymentDate.setMonth(paymentDate.getMonth() + sub.frequency_count); break;
                 case 'years': paymentDate.setFullYear(paymentDate.getFullYear() + sub.frequency_count); break;
+                default: // to prevent infinite loops for bad data
+                    return payments;
             }
         }
         return payments;
