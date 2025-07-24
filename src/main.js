@@ -200,7 +200,7 @@ window.eisenhowerPlannerAPI = (function eisenhowerPlanner() {
             subTasks: [],
             attachments: [],
             deadline: null,
-            status: 'Not Started'
+            status: 'draft'
         };
 
         activeWS.tasks[dateStr][quadrantId].push(newTask);
@@ -719,7 +719,7 @@ window.eisenhowerPlannerAPI = (function eisenhowerPlanner() {
         const task = appData.workspaces.find(ws => ws.id === appData.activeWorkspaceId).tasks[uiState.currentDate.toISOString().split('T')[0]][quadrantId][index];
 
         taskDetailsModal.querySelector('#task-details-title').value = task.text;
-        taskDetailsModal.querySelector('#task-details-status').value = task.status;
+        taskDetailsModal.querySelector('#task-details-status').value = task.status || 'draft';
         taskDetailsModal.querySelector('#task-details-deadline').value = task.deadline || '';
         taskDetailsModal.querySelector('#task-details-description').value = task.description || '';
         renderSubTasks(task.subTasks);
@@ -739,6 +739,9 @@ window.eisenhowerPlannerAPI = (function eisenhowerPlanner() {
             if (todayTasks && todayTasks[quadrantId] && todayTasks[quadrantId][index]) {
                 const task = todayTasks[quadrantId][index];
                 task.text = taskDetailsModal.querySelector('#task-details-title').value.trim();
+                task.status = taskDetailsModal.querySelector('#task-details-status').value;
+                const deadlineValue = taskDetailsModal.querySelector('#task-details-deadline').value;
+                task.deadline = deadlineValue ? deadlineValue : null;
                 task.description = taskDetailsModal.querySelector('#task-details-description').value.trim();
                 saveData();
                 renderTasks();
