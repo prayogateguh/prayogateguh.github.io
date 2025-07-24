@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Planner & Tracker</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <script>
+        // Explicitly tell Tailwind to use the 'class' strategy for dark mode.
+        if (localStorage.theme === 'light' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: light)').matches)) {
+            document.documentElement.classList.remove('dark')
+        } else {
+            document.documentElement.classList.add('dark')
+        }
+    </script>
+  <script type="module" crossorigin src="/assets/index-6573d8fc.js"></script>
+  <link rel="stylesheet" href="/assets/index-7aa56294.css">
+</head>
+<body class="bg-gray-50 dark:bg-gray-900 text-gray-800 dark:text-gray-300 antialiased">
+
+    <div class="flex h-screen overflow-hidden">
+        <!-- Main Sidebar for App Navigation -->
+        <aside class="w-24 flex-shrink-0 bg-white dark:bg-gray-800 p-3 border-r border-gray-200 dark:border-gray-700 flex flex-col items-center justify-between">
+            <div class="flex flex-col items-center gap-y-6">
+                 <div class="w-14 h-14 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-2xl flex items-center justify-center text-white font-bold text-3xl shadow-lg">
+                   D
+                 </div>
+                 <nav class="flex flex-col gap-y-4 mt-4">
+                     <button id="nav-planner" title="Eisenhower Planner" class="app-nav-btn p-4 rounded-2xl focus-ring transition-all duration-200">
+                         <svg class="w-7 h-7" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                     </button>
+                     <button id="nav-tracker" title="Subscription Tracker" class="app-nav-btn p-4 rounded-2xl focus-ring transition-all duration-200">
+                         <svg class="w-7 h-7" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                             <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3.75m-3.75 2.25h16.5m-16.5-7.5h16.5" />
+                         </svg>
+                     </button>
+                 </nav>
+            </div>
+             <div class="flex flex-col items-center gap-y-4">
+                 <button id="theme-toggle-btn" class="p-3 rounded-full bg-gray-100 dark:bg-gray-700/50 text-gray-700 dark:text-yellow-400 focus-ring">
+                     <svg id="theme-icon-sun" class="h-6 w-6 hidden" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
+                     <svg id="theme-icon-moon" class="h-6 w-6 hidden" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" /></svg>
+                 </button>
+             </div>
+        </aside>
+
+        <!-- App Content Area -->
+        <div class="flex-1 flex flex-col overflow-hidden">
+            <!-- Eisenhower Planner App -->
+            <div id="app-planner" class="app-container flex-1 flex flex-col overflow-hidden">
+                <header class="bg-white dark:bg-gray-800/50 border-b border-gray-200 dark:border-gray-700/50 px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between flex-shrink-0">
+                    <div class="flex items-center gap-4">
+                        <h1 class="text-xl font-bold text-gray-900 dark:text-white">Planner</h1>
+                        <div id="workspace-manager" class="flex-grow flex items-center gap-1 md:gap-2 text-sm md:text-base min-w-0"></div>
+                    </div>
+                     <div class="flex items-center gap-4 relative flex-shrink-0">
+                         <button id="today-btn" class="px-3 py-1.5 text-sm bg-gray-200 dark:bg-gray-700 rounded-md hover:bg-gray-300 dark:hover:bg-gray-600 focus-ring hidden sm:block">Today</button>
+                         <div class="flex items-center">
+                             <button id="prev-day-btn" class="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 focus-ring">
+                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+                             </button>
+                             <span class="text-sm font-medium text-gray-500 dark:text-gray-400 w-32 text-center" id="current-date"></span>
+                             <button id="next-day-btn" class="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 focus-ring">
+                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                             </button>
+                         </div>
+                         <button id="calendar-btn" title="Open Calendar" class="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 focus-ring">
+                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                         </button>
+                         <div id="calendar-popover" class="hidden absolute top-full right-0 mt-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg shadow-xl z-20 p-4 w-72">
+                             <div class="flex justify-between items-center mb-2">
+                                 <button id="prev-month-btn" class="p-1.5 rounded-md hover:bg-gray-200 dark:hover:bg-gray-700 focus-ring">
+                                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+                                 </button>
+                                 <div id="month-year" class="font-semibold"></div>
+                                 <button id="next-month-btn" class="p-1.5 rounded-md hover:bg-gray-200 dark:hover:bg-gray-700 focus-ring">
+                                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                                 </button>
+                             </div>
+                             <div id="calendar-grid" class="grid grid-cols-7 gap-1 text-center text-sm"></div>
+                         </div>
+                     </div>
+                </header>
+                
+                <main class="flex-1 overflow-y-auto p-4 sm:p-6 pb-20 bg-gray-100/50 dark:bg-gray-900/70">
+                    <div class="flex flex-col md:flex-row gap-6 h-full">
+                        <div id="unsorted-column-wrapper" class="w-full md:w-96 md:flex-shrink-0 transition-all duration-300 ease-in-out relative h-full">
+                            <div id="unsorted-container" class="w-full h-full"></div>
+                            <button id="desktop-toggle-unsorted-btn" title="Toggle Unsorted Panel" class="absolute top-1/2 -right-4 transform -translate-y-1/2 z-10 p-2 rounded-full bg-white dark:bg-gray-800 shadow-md border border-gray-200 dark:border-gray-700 hidden md:flex items-center justify-center">
+                                <svg class="w-5 h-5 text-gray-700 dark:text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+                            </button>
+                        </div>
+                        <div id="eisenhower-grid" class="grid grid-cols-1 md:grid-cols-2 gap-6 flex-1 md:grid-rows-2"></div>
+                    </div>
+                </main>
+            </div>
+
+            <!-- Subscription Tracker App -->
+            <div id="app-tracker" class="app-container hidden flex-1 flex-col overflow-hidden">
+                <header class="bg-white dark:bg-gray-800/50 border-b border-gray-200 dark:border-gray-700/50 px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between flex-shrink-0">
+                    <div class="flex-1">
+                        <h1 class="text-xl font-bold text-gray-900 dark:text-white">Subscriptions</h1>
+                    </div>
+
+                    <div class="flex-1 flex items-center justify-end gap-4">
+                        <div id="tracker-list-controls" class="flex items-center gap-4">
+                            <div class="relative w-64">
+                                <input type="text" id="subscription-search" placeholder="Search..." class="w-full pl-10 pr-4 py-2 rounded-lg bg-gray-100 dark:bg-gray-800 border border-transparent focus-ring">
+                                <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" /></svg>
+                            </div>
+                        </div>
+                        
+                        <div id="tracker-calendar-controls" class="hidden flex items-center gap-4 relative flex-shrink-0">
+                            <button id="calendar-today-btn" class="px-3 py-1.5 text-sm bg-gray-200 dark:bg-gray-700 rounded-md hover:bg-gray-300 dark:hover:bg-gray-600 focus-ring">Today</button>
+                            <div class="flex items-center">
+                                <button id="calendar-prev-month-btn" class="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 focus-ring">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+                                </button>
+                                <div class="text-center w-32">
+                                    <span id="calendar-month-year" class="text-base font-semibold"></span>
+                                    <div id="calendar-monthly-total" class="text-xs font-medium text-gray-500 dark:text-gray-400"></div>
+                                </div>
+                                <button id="calendar-next-month-btn" class="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 focus-ring">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="flex items-center bg-gray-100 dark:bg-gray-900 p-1 rounded-lg">
+                            <button id="tracker-view-list-btn" title="List View" class="p-2 rounded-md">
+                                <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 10h16M4 14h16M4 18h16" /></svg>
+                            </button>
+                            <button id="tracker-view-calendar-btn" title="Calendar View" class="p-2 rounded-md">
+                                <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                            </button>
+                        </div>
+
+                        <button id="add-subscription-btn" class="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 focus-ring shadow-sm">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" /></svg>
+                            <span>New</span>
+                        </button>
+                    </div>
+                </header>
+                <main class="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 bg-gray-100/50 dark:bg-gray-900/70">
+                    <div id="subscription-summary" class="mb-6">
+                        <!-- Summary will be rendered here -->
+                    </div>
+                    <div id="subscription-list-view" class="space-y-3">
+                        <!-- Subscription list items will be rendered here -->
+                    </div>
+                    <div id="subscription-calendar-view" class="hidden">
+                        <!-- Subscription calendar will be rendered here -->
+                    </div>
+                </main>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODALS (Shared across apps where applicable) -->
+    
+    <!-- Generic Confirmation Modal -->
+    <div id="confirmation-modal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[60] p-4">
+        <div class="bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg shadow-xl p-6 w-full max-w-sm">
+            <h3 id="confirmation-title" class="text-lg font-semibold mb-2 text-gray-900 dark:text-white">Are you sure?</h3>
+            <p id="confirmation-message" class="text-gray-600 dark:text-gray-400 mb-6"></p>
+            <div class="flex justify-end gap-3">
+                <button id="confirmation-cancel-btn" class="px-4 py-2 bg-gray-200 dark:bg-gray-600 text-gray-800 dark:text-white rounded-md hover:bg-gray-300 dark:hover:bg-gray-500 focus-ring">Cancel</button>
+                <button id="confirmation-confirm-btn" class="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 focus-ring">Confirm</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Workspace Modal (Planner) -->
+    <div id="workspace-modal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+        <div class="bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg shadow-xl p-6 w-full max-w-md">
+            <h3 id="workspace-modal-title" class="text-lg font-semibold mb-4 text-gray-900 dark:text-white"></h3>
+            <input type="text" id="workspace-input" class="w-full bg-gray-100 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-200 rounded-md p-2 focus-ring" placeholder="Enter workspace name...">
+            <div class="mt-4 flex justify-end gap-3">
+                <button id="workspace-cancel-btn" class="px-4 py-2 bg-gray-200 dark:bg-gray-600 text-gray-800 dark:text-white rounded-md hover:bg-gray-300 dark:hover:bg-gray-500 focus-ring">Cancel</button>
+                <button id="workspace-save-btn" class="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 focus-ring">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Task Details Modal (Planner) -->
+    <div id="task-details-modal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+        <div class="bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg shadow-xl p-6 w-full max-w-lg flex flex-col" style="max-height: 85vh;">
+            <div class="flex justify-between items-start mb-4">
+                <input type="text" id="task-details-title" class="text-lg font-semibold bg-transparent text-gray-900 dark:text-white w-full focus:outline-none focus:bg-gray-100 dark:focus:bg-gray-700 rounded-md -ml-2 px-2 py-1">
+                <button id="task-details-close-btn" class="p-1 rounded-full text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700">&times;</button>
+            </div>
+            <div class="grid grid-cols-2 gap-4 mb-4">
+                 <div>
+                    <label for="task-details-status" class="text-sm font-medium text-gray-500 dark:text-gray-400 mb-1 block">Status</label>
+                    <select id="task-details-status" class="w-full bg-gray-100 dark:bg-gray-700/50 border border-gray-300 dark:border-gray-600 text-gray-800 dark:text-gray-200 rounded-md p-2 focus-ring">
+                        <option value="draft">Draft</option>
+                        <option value="in progress">In Progress</option>
+                        <option value="completed">Completed</option>
+                    </select>
+                 </div>
+                 <div>
+                    <label for="task-details-deadline" class="text-sm font-medium text-gray-500 dark:text-gray-400 mb-1 block">Deadline</label>
+                    <input type="datetime-local" id="task-details-deadline" class="w-full bg-gray-100 dark:bg-gray-700/50 border border-gray-300 dark:border-gray-600 text-gray-800 dark:text-gray-200 rounded-md p-2 focus-ring">
+                </div>
+            </div>
+            <p class="text-sm text-gray-500 dark:text-gray-400 mb-2">Description</p>
+            <textarea id="task-details-description" class="w-full bg-gray-100 dark:bg-gray-700/50 border border-gray-300 dark:border-gray-600 text-gray-800 dark:text-gray-200 rounded-md p-2 focus-ring mb-4" rows="3" placeholder="Add a description..."></textarea>
+            
+            <div class="flex justify-between items-center mb-2">
+                <p class="text-sm text-gray-500 dark:text-gray-400">Sub-Todos</p>
+            </div>
+            <div id="subtasks-container" class="overflow-y-auto pr-2 space-y-2 subtasks-container mb-4"></div>
+            <form id="add-subtask-form" class="flex gap-2 mb-4">
+                <input type="text" id="subtask-input" class="flex-grow bg-gray-100 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-800 dark:text-gray-200 rounded-md p-2 focus-ring" placeholder="Add a sub-todo...">
+                <button type="submit" class="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 focus-ring">Add</button>
+            </form>
+
+            <div class="flex justify-between items-center mb-2">
+                 <p class="text-sm text-gray-500 dark:text-gray-400">Attachments</p>
+                 <label for="file-attachment-input" class="cursor-pointer text-sm text-indigo-600 dark:text-indigo-400 hover:underline">Attach File</label>
+                 <input type="file" id="file-attachment-input" class="hidden" multiple>
+            </div>
+            <div id="attachments-container" class="flex-grow overflow-y-auto pr-2 space-y-2 border border-gray-200 dark:border-gray-700 rounded-lg p-2 bg-gray-100/30 dark:bg-gray-900/30"></div>
+        </div>
+    </div>
+    
+    <!-- Media Preview Modal (Planner) -->
+    <div id="media-preview-modal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-4xl max-h-full p-4 relative flex items-center justify-center">
+             <button id="media-preview-close-btn" class="absolute -top-2 -right-2 w-8 h-8 bg-white dark:bg-gray-700 rounded-full flex items-center justify-center text-gray-800 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-600 focus-ring z-10">&times;</button>
+             <img id="image-preview-element" src="" alt="Image Preview" class="hidden max-w-full max-h-[85vh] object-contain rounded">
+             <video id="video-preview-element" src="" controls class="hidden max-w-full max-h-[85vh] rounded"></video>
+             <audio id="audio-preview-element" src="" controls class="hidden"></audio>
+             <embed id="pdf-preview-element" src="" type="application/pdf" class="hidden w-[80vw] h-[85vh] rounded">
+        </div>
+    </div>
+
+    <!-- Add/Edit Subscription Modal (Tracker) -->
+    <div id="subscription-modal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+        <div class="bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg shadow-xl p-6 w-full max-w-lg">
+            <div class="flex justify-between items-center mb-6">
+                <h3 id="subscription-modal-title" class="text-xl font-semibold text-gray-900 dark:text-white">Add Subscription</h3>
+                <button id="subscription-modal-close-btn" class="p-1 rounded-full text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700">&times;</button>
+            </div>
+            <form id="subscription-form" class="space-y-4">
+                <input type="hidden" id="subscription-id">
+                <div>
+                    <label for="subscription-name" class="block text-sm font-medium text-gray-600 dark:text-gray-400">Subscription Name</label>
+                    <input type="text" id="subscription-name" class="mt-1 w-full bg-gray-100 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md p-2 focus-ring" required>
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label for="subscription-price" class="block text-sm font-medium text-gray-600 dark:text-gray-400">Price</label>
+                        <input type="number" id="subscription-price" step="0.01" class="mt-1 w-full bg-gray-100 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md p-2 focus-ring" required>
+                    </div>
+                    <div>
+                        <label for="subscription-currency" class="block text-sm font-medium text-gray-600 dark:text-gray-400">Currency</label>
+                        <select id="subscription-currency" class="mt-1 w-full bg-gray-100 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md p-2 focus-ring">
+                            <option>USD</option>
+                            <option>EUR</option>
+                            <option>GBP</option>
+                            <option>IDR</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label for="subscription-frequency-count" class="block text-sm font-medium text-gray-600 dark:text-gray-400">Payment every</label>
+                        <input type="number" id="subscription-frequency-count" value="1" min="1" class="mt-1 w-full bg-gray-100 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md p-2 focus-ring">
+                    </div>
+                    <div>
+                        <label for="subscription-frequency-unit" class="block text-sm font-medium text-gray-600 dark:text-gray-400">&nbsp;</label>
+                        <select id="subscription-frequency-unit" class="mt-1 w-full bg-gray-100 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md p-2 focus-ring">
+                            <option value="days">Day(s)</option>
+                            <option value="weeks">Week(s)</option>
+                            <option value="months" selected>Month(s)</option>
+                            <option value="years">Year(s)</option>
+                        </select>
+                    </div>
+                </div>
+                 <div>
+                      <label for="subscription-next-payment" class="block text-sm font-medium text-gray-600 dark:text-gray-400">First Payment Date</label>
+                      <input type="date" id="subscription-next-payment" class="mt-1 w-full bg-gray-100 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md p-2 focus-ring" required>
+                 </div>
+                <div>
+                    <label for="subscription-payment-method" class="block text-sm font-medium text-gray-600 dark:text-gray-400">Payment Method</label>
+                    <input type="text" id="subscription-payment-method" placeholder="e.g., Credit Card, PayPal" class="mt-1 w-full bg-gray-100 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md p-2 focus-ring">
+                </div>
+                <div>
+                    <label for="subscription-status" class="block text-sm font-medium text-gray-600 dark:text-gray-400">Status</label>
+                    <select id="subscription-status" class="mt-1 w-full bg-gray-100 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md p-2 focus-ring">
+                        <option value="active">Active</option>
+                        <option value="cancelled">Cancelled</option>
+                    </select>
+                </div>
+                <div id="cancellation-date-container" class="hidden">
+                    <label for="subscription-cancellation-date" class="block text-sm font-medium text-gray-600 dark:text-gray-400">Cancellation Date</label>
+                    <input type="date" id="subscription-cancellation-date" class="mt-1 w-full bg-gray-100 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md p-2 focus-ring">
+                </div>
+                <div class="pt-4 flex justify-end gap-3">
+                    <button type="button" id="subscription-form-cancel-btn" class="px-4 py-2 bg-gray-200 dark:bg-gray-600 text-gray-800 dark:text-white rounded-md hover:bg-gray-300 dark:hover:bg-gray-500 focus-ring">Cancel</button>
+                    <button type="submit" class="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 focus-ring">Save Subscription</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    
+</body>
+</html>
