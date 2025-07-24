@@ -1460,7 +1460,18 @@ window.subscriptionTrackerAPI = (function subscriptionTracker() {
     }
 
     function getMonthlyCost(sub) {
-        if (sub.status !== 'active') return 0;
+        if (sub.status === 'cancelled') {
+            if (!sub.cancellation_date) return 0; // No cancellation date, assume not active.
+            const cancellationDate = new Date(sub.cancellation_date);
+            const today = new Date();
+            // If cancellation is in the past, it has no monthly cost going forward.
+            if (cancellationDate < today) {
+                 // We could make this more complex to see if it was active this month,
+                 // but for a summary of ongoing costs, 0 is appropriate.
+                 return 0;
+            }
+        }
+
         const count = sub.frequency_count || 1;
         switch (sub.frequency_unit) {
             case 'days': return (sub.price / count) * 30.44;
