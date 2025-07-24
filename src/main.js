@@ -1078,152 +1078,23 @@ window.eisenhowerPlannerAPI = (function eisenhowerPlanner() {
 
         prevMonthBtn.addEventListener('click', () => {
             calendarDate.setMonth(calendarDate.getMonth() - 1);
-            renderCalendar();
+            render();
         });
-
         nextMonthBtn.addEventListener('click', () => {
             calendarDate.setMonth(calendarDate.getMonth() + 1);
-            renderCalendar();
+            render();
         });
-
         calendarGrid.addEventListener('click', e => {
             const dayCell = e.target.closest('.calendar-day');
             if (dayCell && !dayCell.classList.contains('other-month')) {
-                const day = parseInt(dayCell.textContent);
-                uiState.currentDate = new Date(calendarDate.getFullYear(), calendarDate.getMonth(), day);
-                saveData();
-                renderAllPlanner();
-                calendarPopover.classList.add('hidden');
-            }
-        });
-
-        // Workspace event listeners
-        workspaceManager.addEventListener('click', e => {
-            const button = e.target.closest('button');
-            if (!button) return;
-
-            // Switch Workspace
-            if (button.classList.contains('workspace-btn')) {
-                const workspaceId = button.dataset.id;
-                console.log("Switching to workspace:", workspaceId);
-                // eisenhowerPlanner.switchWorkspace(workspaceId);
-                document.getElementById('workspace-dropdown-menu').classList.add('hidden');
-                return;
-            }
-
-            // Edit Workspace
-            if (button.classList.contains('edit-workspace-btn')) {
-                const workspaceId = button.dataset.id;
-                window.openWorkspaceModal(workspaceId); // Assumes openWorkspaceModal is globally available
-                return;
-            }
-
-            // Delete Workspace
-            if (button.classList.contains('delete-workspace-btn')) {
-                const workspaceId = button.dataset.id;
-                console.log("Deleting workspace:", workspaceId);
-                // openConfirmationModal(...)
-                return;
-            }
-
-            // Add Workspace
-            if (button.id === 'add-workspace-btn-dropdown') {
-                window.openWorkspaceModal(); // Assumes openWorkspaceModal is globally available
-                document.getElementById('workspace-dropdown-menu').classList.add('hidden');
-                return;
-            }
-
-            // Other buttons...
-        });
-
-        // Listeners for modals, which are outside the main app container
-        const subtaskForm = document.getElementById('add-subtask-form');
-        if (subtaskForm) {
-            subtaskForm.addEventListener('submit', e => {
-                e.preventDefault();
-                const input = document.getElementById('subtask-input');
-                const text = input.value.trim();
-                if (text && editingTaskLocation) {
-                    const { quadrantId, index } = editingTaskLocation;
-                    const activeWS = appData.workspaces.find(ws => ws.id === appData.activeWorkspaceId);
-                    const dateStr = uiState.currentDate.toISOString().split('T')[0];
-                    const task = activeWS.tasks[dateStr][quadrantId][index];
-                    if (!task.subTasks) {
-                        task.subTasks = [];
-                    }
-                    task.subTasks.push({ text, done: false });
-                    input.value = '';
+                const day = parseInt(dayCell.dataset.day);
+                if (!isNaN(day)) {
+                    uiState.currentDate.setDate(day);
                     saveData();
-                    renderSubTasks(task.subTasks);
-                    // Also re-render the main tasks to update subtask counts
-                    renderTasks();
+                    renderAllPlanner();
                 }
-            });
-        }
-
-        const workspaceSaveBtn = document.getElementById('workspace-save-btn');
-        if (workspaceSaveBtn) {
-            workspaceSaveBtn.addEventListener('click', () => {
-                const workspaceInput = document.getElementById('workspace-input');
-                const newName = workspaceInput.value.trim();
-                if (!newName) return;
-
-                if (editingTaskLocation && editingTaskLocation.editingWorkspaceId) {
-                    // Editing existing workspace
-                    const ws = appData.workspaces.find(w => w.id === editingTaskLocation.editingWorkspaceId);
-                    if (ws) {
-                        ws.name = newName;
-                    }
-                } else {
-                    // Adding new workspace
-                    const newWorkspace = {
-                        id: `ws-${Date.now()}`,
-                        name: newName,
-                        tasks: {
-                            [getTodayDateString()]: JSON.parse(JSON.stringify(defaultTasks))
-                        }
-                    };
-                    appData.workspaces.push(newWorkspace);
-                    appData.activeWorkspaceId = newWorkspace.id;
-                }
-                saveData();
-                renderAllPlanner();
-                closeWorkspaceModal();
-            });
-        }
-        
-        const workspaceCancelBtn = document.getElementById('workspace-cancel-btn');
-        if(workspaceCancelBtn) workspaceCancelBtn.addEventListener('click', closeWorkspaceModal);
-
-        const taskDetailsCloseBtn = document.getElementById('task-details-close-btn');
-        if(taskDetailsCloseBtn) taskDetailsCloseBtn.addEventListener('click', closeTaskDetailsModal);
-
-        if (fileAttachmentInput) {
-            fileAttachmentInput.addEventListener('change', handleFileAttachment);
-        }
-
-        const attachmentsContainer = document.getElementById('attachments-container');
-        if (attachmentsContainer) {
-            attachmentsContainer.addEventListener('click', e => {
-                const deleteButton = e.target.closest('.delete-attachment-btn');
-                const previewButton = e.target.closest('.preview-attachment-btn');
-
-                if (deleteButton) {
-                    const index = parseInt(deleteButton.dataset.index);
-                    handleDeleteAttachment(index);
-                }
-
-                if (previewButton) {
-                    const index = parseInt(previewButton.dataset.index);
-                    handlePreviewAttachment(index);
-                }
-            });
-        }
-
-        const mediaPreviewCloseBtn = document.getElementById('media-preview-close-btn');
-        if (mediaPreviewCloseBtn) {
-            mediaPreviewCloseBtn.addEventListener('click', closeMediaPreview);
-        }
+            }
+        });
     }
 
     // Expose public methods
@@ -1293,7 +1164,7 @@ window.subscriptionTrackerAPI = (function subscriptionTracker() {
         if (viewMode === 'list') {
             renderListView(filtered);
         } else {
-            renderCalendarView();
+            renderCalendarView(filtered);
         }
         updateSummary(filtered);
     }
@@ -1397,7 +1268,7 @@ window.subscriptionTrackerAPI = (function subscriptionTracker() {
         return payments;
     }
 
-    function renderCalendarView() {
+    function renderCalendarView(filteredSubscriptions) {
         const year = calendarDate.getFullYear();
         const month = calendarDate.getMonth();
         calendarMonthYear.textContent = calendarDate.toLocaleDateString('default', { month: 'short', year: 'numeric' });
@@ -1420,7 +1291,7 @@ window.subscriptionTrackerAPI = (function subscriptionTracker() {
         }
 
         const paymentsByDay = {};
-        subscriptions.forEach(sub => {
+        filteredSubscriptions.forEach(sub => {
             const payments = getPaymentsForMonth(sub, year, month);
             payments.forEach(p => {
                 const day = p.payment_date_in_month.getDate();
@@ -1460,15 +1331,14 @@ window.subscriptionTrackerAPI = (function subscriptionTracker() {
     }
 
     function getMonthlyCost(sub) {
-        if (sub.status === 'cancelled') {
-            if (!sub.cancellation_date) return 0; // No cancellation date, assume not active.
+        // If a subscription is cancelled, only exclude it from the cost if the
+        // cancellation date is in the past. If it's in the future, it's still active.
+        if (sub.status === 'cancelled' && sub.cancellation_date) {
             const cancellationDate = new Date(sub.cancellation_date);
             const today = new Date();
-            // If cancellation is in the past, it has no monthly cost going forward.
+            today.setHours(0, 0, 0, 0); // Normalize today to the start of the day
             if (cancellationDate < today) {
-                 // We could make this more complex to see if it was active this month,
-                 // but for a summary of ongoing costs, 0 is appropriate.
-                 return 0;
+                return 0;
             }
         }
 
@@ -1483,23 +1353,48 @@ window.subscriptionTrackerAPI = (function subscriptionTracker() {
     }
 
     function updateSummary(filteredSubscriptions) {
-        const totalsByCurrency = subscriptions.reduce((acc, sub) => {
-            const cost = getMonthlyCost(sub);
-            if (cost > 0) { // getMonthlyCost returns 0 for inactive
-                const currency = sub.currency || 'USD';
-                if (!acc[currency]) {
-                    acc[currency] = 0;
+        const totalsByCurrency = {};
+        const activeSubsForSummary = [];
+
+        if (viewMode === 'calendar') {
+            const year = calendarDate.getFullYear();
+            const month = calendarDate.getMonth();
+
+            filteredSubscriptions.forEach(sub => {
+                const paymentsInMonth = getPaymentsForMonth(sub, year, month);
+                if (paymentsInMonth.length > 0) {
+                    const cost = getMonthlyCost(sub);
+                    if (cost > 0) {
+                        const currency = sub.currency || 'USD';
+                        if (!totalsByCurrency[currency]) {
+                            totalsByCurrency[currency] = 0;
+                        }
+                        totalsByCurrency[currency] += cost;
+                    }
+                    // It's active in this calendar month
+                    activeSubsForSummary.push(sub);
                 }
-                acc[currency] += cost;
-            }
-            return acc;
-        }, {});
+            });
+        } else {
+            // Original logic for list view (based on current status)
+            filteredSubscriptions.forEach(sub => {
+                const cost = getMonthlyCost(sub);
+                if (cost > 0) {
+                    const currency = sub.currency || 'USD';
+                    if (!totalsByCurrency[currency]) {
+                        totalsByCurrency[currency] = 0;
+                    }
+                    totalsByCurrency[currency] += cost;
+                    activeSubsForSummary.push(sub);
+                }
+            });
+        }
 
         const totalMonthlyHtml = Object.entries(totalsByCurrency)
             .map(([currency, total]) => `${currency} ${formatNumber(total)}`)
             .join('<span class="text-gray-400 dark:text-gray-500 mx-2">|</span>');
 
-        const upcoming = subscriptions
+        const upcoming = filteredSubscriptions
             .filter(s => s.status === 'active' && new Date(s.next_payment_date) >= new Date())
             .sort((a, b) => new Date(a.next_payment_date) - new Date(b.next_payment_date));
 
@@ -1520,7 +1415,7 @@ window.subscriptionTrackerAPI = (function subscriptionTracker() {
                 </div>
                 <div class="bg-white dark:bg-gray-800/60 p-4 rounded-lg shadow-sm">
                     <p class="text-sm text-gray-500 dark:text-gray-400">Active Subscriptions</p>
-                    <p class="text-2xl font-bold text-gray-900 dark:text-white">${subscriptions.filter(s => s.status === 'active').length}</p>
+                    <p class="text-2xl font-bold text-gray-900 dark:text-white">${activeSubsForSummary.length}</p>
                 </div>
                 <div class="bg-white dark:bg-gray-800/60 p-4 rounded-lg shadow-sm">
                     <p class="text-sm text-gray-500 dark:text-gray-400">Upcoming Billing</p>
@@ -1677,15 +1572,15 @@ window.subscriptionTrackerAPI = (function subscriptionTracker() {
 
         calendarPrevMonthBtn.addEventListener('click', () => {
             calendarDate.setMonth(calendarDate.getMonth() - 1);
-            renderCalendarView();
+            render();
         });
         calendarNextMonthBtn.addEventListener('click', () => {
             calendarDate.setMonth(calendarDate.getMonth() + 1);
-            renderCalendarView();
+            render();
         });
         calendarTodayBtn.addEventListener('click', () => {
             calendarDate = new Date();
-            renderCalendarView();
+            render();
         });
 
 
