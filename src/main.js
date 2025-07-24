@@ -1371,7 +1371,17 @@ window.subscriptionTrackerAPI = (function subscriptionTracker() {
         // Iterate forward from the seed date
         while (paymentDate <= calendarMonthEndDate) {
             if (paymentDate >= calendarMonthStartDate && paymentDate >= firstPaymentDate) {
-                payments.push({ ...sub, payment_date_in_month: new Date(paymentDate) });
+                let isValidPayment = true;
+                if (sub.status === 'cancelled' && sub.cancellation_date) {
+                    const cancellationDate = new Date(sub.cancellation_date);
+                    if (paymentDate >= cancellationDate) {
+                        isValidPayment = false;
+                    }
+                }
+
+                if (isValidPayment) {
+                    payments.push({ ...sub, payment_date_in_month: new Date(paymentDate) });
+                }
             }
             
             // Move to the next payment date
@@ -1411,7 +1421,6 @@ window.subscriptionTrackerAPI = (function subscriptionTracker() {
 
         const paymentsByDay = {};
         subscriptions.forEach(sub => {
-            if (sub.status !== 'active') return;
             const payments = getPaymentsForMonth(sub, year, month);
             payments.forEach(p => {
                 const day = p.payment_date_in_month.getDate();
