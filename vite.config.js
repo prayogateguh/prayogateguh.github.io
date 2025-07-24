@@ -1,7 +1,7 @@
 import { defineConfig } from 'vite'
 
 export default defineConfig({
-  base: '/prayogateguh.github.io/',
+  base: '/',
   build: {
     outDir: 'dist'
   }
