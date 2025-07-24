@@ -1244,11 +1244,15 @@ window.subscriptionTrackerAPI = (function subscriptionTracker() {
     let viewMode = 'list'; // 'list' or 'calendar'
     let calendarDate = new Date();
 
+    function formatNumber(num) {
+        return num.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }
+
     // Declare DOM element variables
     let subscriptionModal, subscriptionForm, subscriptionListView, subscriptionCalendarView,
         addSubscriptionBtn, cancelSubscriptionBtn, subscriptionSummary,
         listViewBtn, calendarViewBtn, searchInput,
-        calendarControls, calendarMonthYear, calendarMonthlyTotal, calendarGrid,
+        calendarControls, calendarMonthYear, calendarGrid,
         calendarPrevMonthBtn, calendarNextMonthBtn, calendarTodayBtn;
 
 
@@ -1390,7 +1394,6 @@ window.subscriptionTrackerAPI = (function subscriptionTracker() {
         }
 
         const paymentsByDay = {};
-        let monthTotal = 0;
         subscriptions.forEach(sub => {
             if (sub.status !== 'active') return;
             const payments = getPaymentsForMonth(sub, year, month);
@@ -1398,11 +1401,9 @@ window.subscriptionTrackerAPI = (function subscriptionTracker() {
                 const day = p.payment_date_in_month.getDate();
                 if (!paymentsByDay[day]) paymentsByDay[day] = [];
                 paymentsByDay[day].push(p);
-                monthTotal += p.price;
             });
         });
-        calendarMonthlyTotal.textContent = `${currencySymbol}${monthTotal.toFixed(2)} this month`;
-
+        
         // Add day cells
         for (let day = 1; day <= daysInMonth; day++) {
             const today = new Date();
@@ -1416,9 +1417,12 @@ window.subscriptionTrackerAPI = (function subscriptionTracker() {
                 paymentsList.className = 'space-y-1 mt-1';
                 paymentsByDay[day].slice(0, 3).forEach(p => {
                     const paymentEl = document.createElement('div');
-                    paymentEl.className = 'text-xs bg-indigo-100 dark:bg-indigo-600/30 p-1 rounded truncate';
-                    paymentEl.textContent = p.name;
-                    paymentEl.title = `${p.name} - ${currencySymbol}${p.price.toFixed(2)}`;
+                    paymentEl.className = 'text-xs bg-indigo-100 dark:bg-indigo-600/30 p-1 rounded flex justify-between items-center';
+                    paymentEl.innerHTML = `
+                        <span class="truncate">${p.name}</span>
+                        <span class="font-semibold ml-1">${p.currency || currencySymbol}${formatNumber(p.price)}</span>
+                    `;
+                    paymentEl.title = `${p.name} - ${p.currency || currencySymbol}${formatNumber(p.price)}`;
                     paymentsList.appendChild(paymentEl);
                 });
                 if (paymentsByDay[day].length > 3) {
@@ -1443,7 +1447,21 @@ window.subscriptionTrackerAPI = (function subscriptionTracker() {
     }
 
     function updateSummary(filteredSubscriptions) {
-        const totalMonthly = subscriptions.reduce((acc, sub) => acc + getMonthlyCost(sub), 0);
+        const totalsByCurrency = subscriptions.reduce((acc, sub) => {
+            const cost = getMonthlyCost(sub);
+            if (cost > 0) { // getMonthlyCost returns 0 for inactive
+                const currency = sub.currency || 'USD';
+                if (!acc[currency]) {
+                    acc[currency] = 0;
+                }
+                acc[currency] += cost;
+            }
+            return acc;
+        }, {});
+
+        const totalMonthlyHtml = Object.entries(totalsByCurrency)
+            .map(([currency, total]) => `${currency} ${formatNumber(total)}`)
+            .join('<span class="text-gray-400 dark:text-gray-500 mx-2">|</span>');
 
         const upcoming = subscriptions
             .filter(s => s.status === 'active' && new Date(s.next_payment_date) >= new Date())
@@ -1454,7 +1472,7 @@ window.subscriptionTrackerAPI = (function subscriptionTracker() {
             const next = upcoming[0];
             const daysUntil = Math.ceil((new Date(next.next_payment_date) - new Date()) / (1000 * 60 * 60 * 24));
             upcomingBillingHtml = `
-                <span class="font-semibold">${next.name}</span> is next in <span class="font-bold text-indigo-500">${daysUntil}</span> days (${next.currency || currencySymbol}${next.price.toFixed(2)})
+                <span class="font-semibold">${next.name}</span> is next in <span class="font-bold text-indigo-500">${daysUntil}</span> days (${next.currency || currencySymbol}${formatNumber(next.price)})
             `;
         }
 
@@ -1462,7 +1480,7 @@ window.subscriptionTrackerAPI = (function subscriptionTracker() {
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-center">
                 <div class="bg-white dark:bg-gray-800/60 p-4 rounded-lg shadow-sm">
                     <p class="text-sm text-gray-500 dark:text-gray-400">Total Monthly Cost</p>
-                    <p class="text-2xl font-bold text-gray-900 dark:text-white">${currencySymbol}${totalMonthly.toFixed(2)}</p>
+                    <p class="text-2xl font-bold text-gray-900 dark:text-white">${totalMonthlyHtml || 'No active subscriptions'}</p>
                 </div>
                 <div class="bg-white dark:bg-gray-800/60 p-4 rounded-lg shadow-sm">
                     <p class="text-sm text-gray-500 dark:text-gray-400">Active Subscriptions</p>
@@ -1497,7 +1515,7 @@ window.subscriptionTrackerAPI = (function subscriptionTracker() {
                         </div>
                     </div>
                     <div class="w-1/5 text-center flex-shrink-0">
-                        <p class="font-semibold text-gray-900 dark:text-white">${sub.currency || currencySymbol}${sub.price.toFixed(2)}</p>
+                        <p class="font-semibold text-gray-900 dark:text-white">${sub.currency || currencySymbol}${formatNumber(sub.price)}</p>
                         <p class="text-sm text-gray-500 dark:text-gray-400 capitalize">${frequency}</p>
                     </div>
                     <div class="w-1/5 text-center flex-shrink-0">
@@ -1667,7 +1685,6 @@ window.subscriptionTrackerAPI = (function subscriptionTracker() {
         searchInput = document.getElementById('subscription-search');
         calendarControls = document.getElementById('tracker-calendar-controls');
         calendarMonthYear = document.getElementById('calendar-month-year');
-        calendarMonthlyTotal = document.getElementById('calendar-monthly-total');
         calendarGrid = document.getElementById('subscription-calendar-view'); // The grid is the view itself
         calendarGrid.classList.add('grid', 'grid-cols-7', 'gap-px'); // Add grid styles
         calendarPrevMonthBtn = document.getElementById('calendar-prev-month-btn');
