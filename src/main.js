@@ -1003,6 +1003,14 @@ window.eisenhowerPlannerAPI = (function eisenhowerPlanner() {
             const button = e.target.closest('button');
             if (!button) return;
 
+            // Toggle Unsorted Panel
+            if (button.id === 'desktop-toggle-unsorted-btn' || button.id === 'toggle-unsorted-btn') {
+                uiState.unsortedCollapsed = !uiState.unsortedCollapsed;
+                saveData();
+                applyUiState();
+                return;
+            }
+
             // Workspace Dropdown Toggle
             if (button.id === 'workspace-dropdown-btn') {
                 const dropdownMenu = document.getElementById('workspace-dropdown-menu');
