@@ -1003,6 +1003,67 @@ window.eisenhowerPlannerAPI = (function eisenhowerPlanner() {
             const button = e.target.closest('button');
             if (!button) return;
 
+            // Workspace Dropdown Toggle
+            if (button.id === 'workspace-dropdown-btn') {
+                const dropdownMenu = document.getElementById('workspace-dropdown-menu');
+                if (dropdownMenu) {
+                    dropdownMenu.classList.toggle('hidden');
+                }
+                return;
+            }
+
+            // Switch Workspace
+            if (button.classList.contains('workspace-btn')) {
+                const workspaceId = button.dataset.id;
+                appData.activeWorkspaceId = workspaceId;
+                saveData();
+                renderAllPlanner();
+                const dropdownMenu = document.getElementById('workspace-dropdown-menu');
+                if (dropdownMenu) {
+                    dropdownMenu.classList.add('hidden');
+                }
+                return;
+            }
+
+            // Add Workspace
+            if (button.id === 'add-workspace-btn-dropdown') {
+                openWorkspaceModal();
+                const dropdownMenu = document.getElementById('workspace-dropdown-menu');
+                if (dropdownMenu) {
+                    dropdownMenu.classList.add('hidden');
+                }
+                return;
+            }
+
+            // Edit Workspace
+            if (button.classList.contains('edit-workspace-btn')) {
+                const workspaceId = button.dataset.id;
+                openWorkspaceModal(workspaceId);
+                const dropdownMenu = document.getElementById('workspace-dropdown-menu');
+                if (dropdownMenu) {
+                    dropdownMenu.classList.add('hidden');
+                }
+                return;
+            }
+
+            // Delete Workspace
+            if (button.classList.contains('delete-workspace-btn')) {
+                const workspaceId = button.dataset.id;
+                openConfirmationModal('Are you sure you want to delete this workspace and all its tasks?', () => {
+                    appData.workspaces = appData.workspaces.filter(ws => ws.id !== workspaceId);
+                    if (appData.activeWorkspaceId === workspaceId) {
+                        appData.activeWorkspaceId = appData.workspaces[0].id;
+                    }
+                    saveData();
+                    renderAllPlanner();
+                });
+                const dropdownMenu = document.getElementById('workspace-dropdown-menu');
+                if (dropdownMenu) {
+                    dropdownMenu.classList.add('hidden');
+                }
+                return;
+            }
+
             // Add Task
             if (button.classList.contains('add-task-btn')) {
                 const form = button.nextElementSibling;
