@@ -1,0 +1,124 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+    font-family: 'Inter', sans-serif;
+}
+
+.tasks-container::-webkit-scrollbar,
+.subtasks-container::-webkit-scrollbar,
+#attachments-container::-webkit-scrollbar,
+.past-task-items-container::-webkit-scrollbar,
+#subscription-list-view::-webkit-scrollbar {
+    width: 4px;
+}
+
+.tasks-container::-webkit-scrollbar-thumb,
+.subtasks-container::-webkit-scrollbar-thumb,
+#attachments-container::-webkit-scrollbar-thumb,
+.past-task-items-container::-webkit-scrollbar-thumb,
+#subscription-list-view::-webkit-scrollbar-thumb {
+    background-color: #4b5563;
+    border-radius: 20px;
+}
+
+.tasks-container,
+.subtasks-container,
+#attachments-container,
+.past-task-items-container,
+#subscription-list-view {
+    scrollbar-width: thin;
+    scrollbar-color: #4b5563 #1f2937;
+}
+
+.focus-ring {
+    @apply focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500;
+}
+
+.dark .focus-ring {
+    @apply focus:ring-offset-gray-900;
+}
+
+.light .focus-ring {
+    @apply focus:ring-offset-white;
+}
+
+.task-checkbox:checked+.task-text,
+.subtask-checkbox:checked+.subtask-text {
+    text-decoration: line-through;
+}
+
+.dark .task-checkbox:checked+.task-text,
+.dark .subtask-checkbox:checked+.subtask-text {
+    color: #6b7280;
+}
+
+.light .task-checkbox:checked+.task-text,
+.light .subtask-checkbox:checked+.subtask-text {
+    color: #9ca3af;
+}
+
+.workspace-menu-item-group:hover .sidebar-item-actions {
+    opacity: 1;
+}
+
+.task-item:hover .task-actions {
+    opacity: 1;
+}
+
+.subtask-item:hover .subtask-actions {
+    opacity: 1;
+}
+
+.attachment-item:hover .attachment-actions {
+    opacity: 1;
+}
+
+.task-item.dragging,
+.subtask-item.dragging {
+    opacity: 0.5;
+}
+
+.drag-over {
+    background-color: #e0e7ff !important;
+    border-color: #6366f1 !important;
+}
+
+.dark .drag-over {
+    background-color: #3730a3 !important;
+    border-color: #a5b4fc !important;
+}
+
+.task-drag-over-top {
+    border-top: 2px solid #4f46e5;
+}
+
+.task-drag-over-bottom {
+    border-bottom: 2px solid #4f46e5;
+}
+
+.subtask-drag-over-top {
+    border-top: 2px solid #4f46e5;
+}
+
+.subtask-drag-over-bottom {
+    border-bottom: 2px solid #4f46e5;
+}
+
+.subscription-item:hover .subscription-actions {
+    opacity: 1;
+}
+
+#subscription-calendar .calendar-day {
+    min-height: 120px;
+}
+
+#subscription-calendar .today-bar {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background-color: #6366f1;
+}
