@@ -1164,6 +1164,58 @@ window.eisenhowerPlannerAPI = (function eisenhowerPlanner() {
                 }
             }
         });
+
+        const workspaceSaveBtn = document.getElementById('workspace-save-btn');
+        const workspaceCancelBtn = document.getElementById('workspace-cancel-btn');
+
+        const handleWorkspaceSave = () => {
+            const name = workspaceInput.value.trim();
+            if (!name) {
+                workspaceInput.focus();
+                return;
+            }
+
+            const editingWorkspaceId = editingTaskLocation && editingTaskLocation.editingWorkspaceId;
+
+            if (editingWorkspaceId) {
+                const existingWorkspace = appData.workspaces.find(ws => ws.id === editingWorkspaceId);
+                if (existingWorkspace) {
+                    existingWorkspace.name = name;
+                }
+            } else {
+                const newWorkspaceId = `ws-${Date.now()}`;
+                const dateKey = uiState.currentDate.toISOString().split('T')[0];
+                appData.workspaces.push({
+                    id: newWorkspaceId,
+                    name,
+                    tasks: {
+                        [dateKey]: JSON.parse(JSON.stringify(defaultTasks))
+                    }
+                });
+                appData.activeWorkspaceId = newWorkspaceId;
+            }
+
+            saveData();
+            renderAllPlanner();
+            closeWorkspaceModal();
+        };
+
+        if (workspaceCancelBtn) {
+            workspaceCancelBtn.addEventListener('click', closeWorkspaceModal);
+        }
+
+        if (workspaceSaveBtn) {
+            workspaceSaveBtn.addEventListener('click', handleWorkspaceSave);
+        }
+
+        if (workspaceInput) {
+            workspaceInput.addEventListener('keydown', e => {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    handleWorkspaceSave();
+                }
+            });
+        }
     }
 
     // Expose public methods
