@@ -22,8 +22,8 @@
         document.documentElement.classList.add("dark");
       }
     </script>
-    <script type="module" crossorigin src="/assets/index-uuv-q00s.js"></script>
-    <link rel="stylesheet" crossorigin href="/assets/index-BHLE3FY9.css">
+    <script type="module" crossorigin src="/assets/index-BHIm6niW.js"></script>
+    <link rel="stylesheet" crossorigin href="/assets/index-DURDb7uM.css">
   </head>
   <body
     class="bg-gray-50 dark:bg-gray-900 text-gray-800 dark:text-gray-300 antialiased"
@@ -678,34 +678,125 @@
         >
           <button
             class="p-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded text-gray-700 dark:text-gray-300"
+            onmousedown="event.preventDefault()"
             onclick="document.execCommand('bold', false, null)"
+            title="Bold"
           >
             <b>B</b>
           </button>
           <button
             class="p-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded text-gray-700 dark:text-gray-300"
+            onmousedown="event.preventDefault()"
             onclick="document.execCommand('italic', false, null)"
+            title="Italic"
           >
             <i>I</i>
           </button>
           <button
             class="p-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded text-gray-700 dark:text-gray-300"
+            onmousedown="event.preventDefault()"
+            onclick="document.execCommand('underline', false, null)"
+            title="Underline"
+          >
+            <u>U</u>
+          </button>
+          <button
+            class="p-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded text-gray-700 dark:text-gray-300"
+            onmousedown="event.preventDefault()"
             onclick="document.execCommand('strikeThrough', false, null)"
+            title="Strikethrough"
           >
             <s>S</s>
           </button>
+          <div class="w-px bg-gray-300 dark:bg-gray-600 mx-1"></div>
           <button
-            class="p-2 hover:bg-gray-200 rounded"
+            class="p-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded text-gray-700 dark:text-gray-300"
+            onmousedown="event.preventDefault()"
+            onclick="document.execCommand('formatBlock', false, '<h1>')"
+            title="Heading 1"
+          >
+            H1
+          </button>
+          <button
+            class="p-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded text-gray-700 dark:text-gray-300"
+            onmousedown="event.preventDefault()"
+            onclick="document.execCommand('formatBlock', false, '<h2>')"
+            title="Heading 2"
+          >
+            H2
+          </button>
+          <button
+            class="p-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded text-gray-700 dark:text-gray-300"
+            onmousedown="event.preventDefault()"
+            onclick="document.execCommand('formatBlock', false, '<h3>')"
+            title="Heading 3"
+          >
+            H3
+          </button>
+          <button
+            class="p-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded text-gray-700 dark:text-gray-300"
+            onmousedown="event.preventDefault()"
+            onclick="document.execCommand('formatBlock', false, '<h4>')"
+            title="Heading 4"
+          >
+            H4
+          </button>
+          <button
+            class="p-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded text-gray-700 dark:text-gray-300"
+            onmousedown="event.preventDefault()"
+            onclick="document.execCommand('formatBlock', false, '<h5>')"
+            title="Heading 5"
+          >
+            H5
+          </button>
+          <button
+            class="p-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded text-gray-700 dark:text-gray-300"
+            onmousedown="event.preventDefault()"
+            onclick="document.execCommand('formatBlock', false, '<h6>')"
+            title="Heading 6"
+          >
+            H6
+          </button>
+          <div class="w-px bg-gray-300 dark:bg-gray-600 mx-1"></div>
+          <button
+            class="p-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded text-gray-700 dark:text-gray-300"
+            onmousedown="event.preventDefault()"
             onclick="document.execCommand('insertUnorderedList', false, null)"
+            title="Bullet List"
           >
             • List
+          </button>
+          <button
+            class="p-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded text-gray-700 dark:text-gray-300"
+            onmousedown="event.preventDefault()"
+            onclick="document.execCommand('insertOrderedList', false, null)"
+            title="Numbered List"
+          >
+            1. List
+          </button>
+          <button
+            class="p-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded text-gray-700 dark:text-gray-300"
+            onmousedown="event.preventDefault()"
+            onclick="document.execCommand('insertHTML', false, '<input type=\'checkbox\'>&nbsp;')"
+            title="Task List"
+          >
+            ☑ List
+          </button>
+          <div class="w-px bg-gray-300 dark:bg-gray-600 mx-1"></div>
+          <button
+            class="p-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded text-gray-700 dark:text-gray-300"
+            onmousedown="event.preventDefault()"
+            onclick="document.execCommand('removeFormat', false, null); document.execCommand('formatBlock', false, 'div')"
+            title="Clear Formatting"
+          >
+            Clear
           </button>
           <div class="flex-1"></div>
           <button
             id="saveNoteBtn"
             class="px-6 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors"
           >
-            Save Note
+            Save
           </button>
         </div>
       </div>
