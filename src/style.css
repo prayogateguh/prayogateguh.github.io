@@ -122,3 +122,52 @@ body {
     height: 3px;
     background-color: #6366f1;
 }
+
+/* Note Editor Styles */
+#noteEditor h1 {
+    @apply text-3xl font-bold mb-4 mt-2;
+}
+
+#noteEditor h2 {
+    @apply text-2xl font-bold mb-3 mt-2;
+}
+
+#noteEditor h3 {
+    @apply text-xl font-bold mb-2 mt-2;
+}
+
+#noteEditor h4 {
+    @apply text-lg font-bold mb-2 mt-2;
+}
+
+#noteEditor h5 {
+    @apply text-base font-bold mb-1 mt-1;
+}
+
+#noteEditor h6 {
+    @apply text-sm font-bold mb-1 mt-1 uppercase text-gray-500;
+}
+
+#noteEditor ul {
+    @apply list-disc list-inside mb-2 ml-4;
+}
+
+#noteEditor ol {
+    @apply list-decimal list-inside mb-2 ml-4;
+}
+
+#noteEditor b, #noteEditor strong {
+    @apply font-bold;
+}
+
+#noteEditor i, #noteEditor em {
+    @apply italic;
+}
+
+#noteEditor u {
+    @apply underline;
+}
+
+#noteEditor s, #noteEditor strike {
+    @apply line-through;
+}

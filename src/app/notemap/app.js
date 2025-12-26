@@ -94,9 +94,9 @@ export default class MindMap {
     document
       .getElementById("saveNoteBtn")
       .addEventListener("click", () => this.saveNote());
-    noteModal.addEventListener("click", (e) => {
-      if (e.target === noteModal) this.closeNoteModal();
-    });
+    // noteModal.addEventListener("click", (e) => {
+    //   if (e.target === noteModal) this.closeNoteModal();
+    // });
 
     // Action Bar events
     document.getElementById("actionAddChild").addEventListener("click", () => {
@@ -655,6 +655,14 @@ export default class MindMap {
   }
 
   handleKeyDown(e) {
+    // Check if note modal is open
+    const noteModal = document.getElementById("noteModal");
+    if (noteModal && !noteModal.classList.contains("hidden")) return;
+
+    // Check if page modal is open
+    const pageModal = document.getElementById("pageModal");
+    if (pageModal && !pageModal.classList.contains("hidden")) return;
+
     // Tab key to create child node from selected node
     if (e.key === "Tab" && this.selectedNode && !this.connectMode) {
       e.preventDefault();
@@ -666,10 +674,7 @@ export default class MindMap {
       // Don't delete if editing text (though editing is in a modal, so this event might not fire there, but good to be safe if we change to inline edit later)
       // Since we use a modal, the keydown on document might catch it if modal is closed.
       // If modal is open, we should probably not delete.
-      const modal = document.getElementById("editModal");
-      if (modal.classList.contains("hidden")) {
-        this.deleteNode(this.selectedNode);
-      }
+      this.deleteNode(this.selectedNode);
     }
   }
 
