@@ -1,4 +1,81 @@
 import MindMap from "./app/notemap/app.js";
+import hljs from "highlight.js/lib/core";
+import "highlight.js/styles/github-dark.css";
+
+// Import languages
+import javascript from "highlight.js/lib/languages/javascript";
+import typescript from "highlight.js/lib/languages/typescript";
+import xml from "highlight.js/lib/languages/xml";
+import css from "highlight.js/lib/languages/css";
+import json from "highlight.js/lib/languages/json";
+import java from "highlight.js/lib/languages/java";
+import python from "highlight.js/lib/languages/python";
+import c from "highlight.js/lib/languages/c";
+import cpp from "highlight.js/lib/languages/cpp";
+import csharp from "highlight.js/lib/languages/csharp";
+import go from "highlight.js/lib/languages/go";
+import rust from "highlight.js/lib/languages/rust";
+import php from "highlight.js/lib/languages/php";
+import ruby from "highlight.js/lib/languages/ruby";
+import swift from "highlight.js/lib/languages/swift";
+import kotlin from "highlight.js/lib/languages/kotlin";
+import sql from "highlight.js/lib/languages/sql";
+import bash from "highlight.js/lib/languages/bash";
+import markdown from "highlight.js/lib/languages/markdown";
+import yaml from "highlight.js/lib/languages/yaml";
+import lua from "highlight.js/lib/languages/lua";
+import perl from "highlight.js/lib/languages/perl";
+import r from "highlight.js/lib/languages/r";
+import objectivec from "highlight.js/lib/languages/objectivec";
+import vbnet from "highlight.js/lib/languages/vbnet";
+import scss from "highlight.js/lib/languages/scss";
+import diff from "highlight.js/lib/languages/diff";
+import makefile from "highlight.js/lib/languages/makefile";
+import dockerfile from "highlight.js/lib/languages/dockerfile";
+import graphql from "highlight.js/lib/languages/graphql";
+import powershell from "highlight.js/lib/languages/powershell";
+import latex from "highlight.js/lib/languages/latex";
+import nginx from "highlight.js/lib/languages/nginx";
+import plaintext from "highlight.js/lib/languages/plaintext";
+
+// Register languages
+hljs.registerLanguage("javascript", javascript);
+hljs.registerLanguage("typescript", typescript);
+hljs.registerLanguage("xml", xml);
+hljs.registerLanguage("css", css);
+hljs.registerLanguage("json", json);
+hljs.registerLanguage("java", java);
+hljs.registerLanguage("python", python);
+hljs.registerLanguage("c", c);
+hljs.registerLanguage("cpp", cpp);
+hljs.registerLanguage("csharp", csharp);
+hljs.registerLanguage("go", go);
+hljs.registerLanguage("rust", rust);
+hljs.registerLanguage("php", php);
+hljs.registerLanguage("ruby", ruby);
+hljs.registerLanguage("swift", swift);
+hljs.registerLanguage("kotlin", kotlin);
+hljs.registerLanguage("sql", sql);
+hljs.registerLanguage("bash", bash);
+hljs.registerLanguage("markdown", markdown);
+hljs.registerLanguage("yaml", yaml);
+hljs.registerLanguage("lua", lua);
+hljs.registerLanguage("perl", perl);
+hljs.registerLanguage("r", r);
+hljs.registerLanguage("objectivec", objectivec);
+hljs.registerLanguage("vbnet", vbnet);
+hljs.registerLanguage("scss", scss);
+hljs.registerLanguage("diff", diff);
+hljs.registerLanguage("makefile", makefile);
+hljs.registerLanguage("dockerfile", dockerfile);
+hljs.registerLanguage("graphql", graphql);
+hljs.registerLanguage("powershell", powershell);
+hljs.registerLanguage("latex", latex);
+hljs.registerLanguage("nginx", nginx);
+hljs.registerLanguage("plaintext", plaintext);
+
+// Make hljs available globally
+window.hljs = hljs;
 
 // --- GLOBAL APP STATE & NAVIGATION ---
 const appState = {

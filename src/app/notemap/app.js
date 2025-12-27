@@ -94,6 +94,12 @@ export default class MindMap {
     document
       .getElementById("saveNoteBtn")
       .addEventListener("click", () => this.saveNote());
+
+    const btnInsertCode = document.getElementById("btnInsertCode");
+    if (btnInsertCode) {
+      btnInsertCode.addEventListener("click", () => this.insertCodeBlock());
+    }
+
     // noteModal.addEventListener("click", (e) => {
     //   if (e.target === noteModal) this.closeNoteModal();
     // });
@@ -961,6 +967,114 @@ export default class MindMap {
     this.saveState();
   }
 
+  insertCodeBlock() {
+    const languageSelect = document.getElementById("codeLangSelector");
+    const language = languageSelect.value;
+    const languageLabel =
+      languageSelect.options[languageSelect.selectedIndex].text;
+
+    const selection = window.getSelection();
+    if (!selection.rangeCount) return;
+
+    // Check if selection is inside noteEditor
+    const noteEditor = document.getElementById("noteEditor");
+    if (!noteEditor.contains(selection.anchorNode)) return;
+
+    const range = selection.getRangeAt(0);
+    const selectedText = range.toString();
+
+    // Create wrapper structure
+    const wrapper = document.createElement("div");
+    wrapper.className =
+      "code-block-wrapper my-4 rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900";
+    wrapper.contentEditable = "false";
+
+    // Header
+    const header = document.createElement("div");
+    header.className =
+      "flex justify-between items-center px-4 py-2 bg-gray-200 dark:bg-gray-800 border-b border-gray-300 dark:border-gray-700 select-none";
+
+    const langSpan = document.createElement("span");
+    langSpan.className =
+      "text-xs font-mono text-gray-600 dark:text-gray-400 uppercase";
+    langSpan.textContent = languageLabel;
+
+    const deleteBtn = document.createElement("button");
+    deleteBtn.className =
+      "text-gray-500 hover:text-red-600 dark:hover:text-red-400 transition-colors p-1 rounded hover:bg-gray-300 dark:hover:bg-gray-700";
+    deleteBtn.title = "Delete Code Block";
+    deleteBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>`;
+    deleteBtn.onclick = (e) => {
+      e.preventDefault(); // Prevent focus loss issues
+      if (confirm("Delete this code block?")) {
+        wrapper.remove();
+      }
+    };
+
+    header.appendChild(langSpan);
+    header.appendChild(deleteBtn);
+
+    // Code area
+    const pre = document.createElement("pre");
+    pre.className =
+      "m-0 p-4 overflow-x-auto text-sm font-mono leading-relaxed bg-gray-50 dark:bg-gray-900 text-gray-800 dark:text-gray-200";
+
+    const code = document.createElement("code");
+    code.className = `language-${language} outline-none block`;
+    code.contentEditable = "true";
+    code.textContent = selectedText || " ";
+
+    // Helper to highlight
+    const highlight = () => {
+      if (window.hljs) {
+        try {
+          // Use highlight() instead of highlightElement() for better control with contentEditable
+          const result = window.hljs.highlight(code.textContent, {
+            language: language,
+          });
+          code.innerHTML = result.value;
+          code.classList.add("hljs"); // Ensure class is added
+        } catch (e) {
+          console.error("Highlight error:", e);
+        }
+      }
+    };
+
+    // Focus: Strip tags to allow clean editing
+    code.addEventListener("focus", () => {
+      code.textContent = code.textContent;
+    });
+
+    // Blur: Re-highlight
+    code.addEventListener("blur", () => {
+      highlight();
+    });
+
+    pre.appendChild(code);
+    wrapper.appendChild(header);
+    wrapper.appendChild(pre);
+
+    // Insert
+    range.deleteContents();
+    range.insertNode(wrapper);
+
+    // Initial Highlight
+    highlight();
+
+    // Insert a paragraph after to allow continuing typing
+    const p = document.createElement("div");
+    p.innerHTML = "<br>";
+    wrapper.after(p);
+
+    // Move cursor to the code block (will trigger focus and strip tags, which is fine for starting)
+    const newRange = document.createRange();
+    newRange.selectNodeContents(code);
+    newRange.collapse(false);
+    selection.removeAllRanges();
+    selection.addRange(newRange);
+    code.focus(); // Explicitly focus
+  }
+
   openNoteEditor(node) {
     const modal = document.getElementById("noteModal");
     const title = document.getElementById("noteModalTitle");
@@ -968,6 +1082,114 @@ export default class MindMap {
 
     title.textContent = node.text;
     editor.innerHTML = node.note || "";
+
+    // Migrate old code blocks (pre > code without wrapper)
+    editor.querySelectorAll("pre").forEach((pre) => {
+      if (pre.closest(".code-block-wrapper")) return;
+
+      const code = pre.querySelector("code");
+      if (!code) return;
+
+      // Get language
+      let language = "plaintext";
+      code.classList.forEach((cls) => {
+        if (cls.startsWith("language-")) {
+          language = cls.replace("language-", "");
+        }
+      });
+
+      // Create wrapper
+      const wrapper = document.createElement("div");
+      wrapper.className =
+        "code-block-wrapper my-4 rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900";
+      wrapper.contentEditable = "false";
+
+      // Header
+      const header = document.createElement("div");
+      header.className =
+        "flex justify-between items-center px-4 py-2 bg-gray-200 dark:bg-gray-800 border-b border-gray-300 dark:border-gray-700 select-none";
+
+      const langSpan = document.createElement("span");
+      langSpan.className =
+        "text-xs font-mono text-gray-600 dark:text-gray-400 uppercase";
+      langSpan.textContent = language;
+
+      const deleteBtn = document.createElement("button");
+      deleteBtn.className =
+        "text-gray-500 hover:text-red-600 dark:hover:text-red-400 transition-colors p-1 rounded hover:bg-gray-300 dark:hover:bg-gray-700";
+      deleteBtn.title = "Delete Code Block";
+      deleteBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>`;
+
+      header.appendChild(langSpan);
+      header.appendChild(deleteBtn);
+
+      // Update pre styles
+      pre.className =
+        "m-0 p-4 overflow-x-auto text-sm font-mono leading-relaxed bg-gray-50 dark:bg-gray-900 text-gray-800 dark:text-gray-200";
+
+      // Update code styles
+      code.className = `language-${language} outline-none block`;
+      code.contentEditable = "true";
+
+      // Wrap
+      pre.parentNode.insertBefore(wrapper, pre);
+      wrapper.appendChild(header);
+      wrapper.appendChild(pre);
+    });
+
+    // Re-attach events and highlight existing code blocks
+    if (window.hljs) {
+      editor.querySelectorAll(".code-block-wrapper").forEach((wrapper) => {
+        const code = wrapper.querySelector("code");
+        const deleteBtn = wrapper.querySelector("button");
+        const langSpan = wrapper.querySelector("span");
+
+        // Re-attach delete event
+        if (deleteBtn) {
+          deleteBtn.onclick = (e) => {
+            e.preventDefault();
+            if (confirm("Delete this code block?")) {
+              wrapper.remove();
+            }
+          };
+        }
+
+        if (code) {
+          // Get language from class or header
+          let language = "plaintext";
+          code.classList.forEach((cls) => {
+            if (cls.startsWith("language-")) {
+              language = cls.replace("language-", "");
+            }
+          });
+
+          const highlight = () => {
+            if (window.hljs) {
+              try {
+                const result = window.hljs.highlight(code.textContent, {
+                  language: language,
+                });
+                code.innerHTML = result.value;
+                code.classList.add("hljs");
+              } catch (e) {
+                console.error(e);
+              }
+            }
+          };
+
+          // Re-attach listeners
+          code.addEventListener("focus", () => {
+            code.textContent = code.textContent;
+          });
+          code.addEventListener("blur", () => {
+            highlight();
+          });
+
+          // Initial highlight on open
+          highlight();
+        }
+      });
+    }
 
     modal.classList.remove("hidden");
     this.editingNode = node;
